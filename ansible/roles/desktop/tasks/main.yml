@@ -12,3 +12,10 @@
   ansible.builtin.include_tasks: cosmic.yml
   when: atomik_desktop == 'cosmic'
 
+- name: Set Brave Origin as default web browser
+  ansible.builtin.shell: "xdg-settings set default-web-browser brave-origin.desktop"
+  become: true
+  become_user: "{{ atomik_user }}"
+  changed_when: false
+  failed_when: false
+
