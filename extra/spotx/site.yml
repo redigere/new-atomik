@@ -1,0 +1,28 @@
+---
+- name: Setup SpotX on hosts
+  hosts: localhost
+  become: true
+  gather_facts: true
+
+  vars:
+    spotx_flatpak_id: com.spotify.Client
+
+  tasks:
+    - name: Ensure Spotify is installed (flatpak)
+      community.general.flatpak:
+        name: "{{ spotx_flatpak_id }}"
+        remote: flathub
+        state: present
+        method: user
+      become: true
+      become_user: "{{ ansible_user_id }}"
+      register: spotify_install
+      changed_when: spotify_install is changed
+      failed_when: false
+
+    - name: Apply SpotX ad-block patch
+      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/spotx/apply_spotx.sh"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+      changed_when: false
+      failed_when: false

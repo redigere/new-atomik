@@ -1,6 +1,6 @@
 .PHONY: all lint check test install-deps apply-core apply-all clean help
 .PHONY: apply-only-repos apply-only-packages apply-only-security apply-only-desktop
-.PHONY: apply-extra apply-extra-gnome apply-extra-codium apply-extra-devtools apply-extra-flatpak apply-extra-gaming apply-extra-business
+.PHONY: apply-extra apply-extra-gnome apply-extra-codium apply-extra-devtools apply-extra-flatpak apply-extra-gaming apply-extra-business apply-extra-spotx
 
 PROJECT_DIR := $(shell pwd)
 ANSIBLE_CONFIG = $(PROJECT_DIR)/ansible/ansible.cfg
@@ -27,12 +27,13 @@ help:
 	@echo "  make apply-extra-flatpak  Install Flatpak runtime and remotes"
 	@echo "  make apply-extra-gaming   Install gaming Flatpaks (Discord, Heroic)"
 	@echo "  make apply-extra-business Install business Flatpaks (Slack)"
+	@echo "  make apply-extra-spotx    Apply SpotX ad-block to Spotify"
 	@echo "  make install-deps         Install ansible-core + collections"
 	@echo "  make clean                Remove ansible retry files"
 
 apply-all: apply-core apply-extra
 
-apply-extra: apply-extra-gnome apply-extra-codium apply-extra-devtools apply-extra-flatpak apply-extra-gaming apply-extra-business
+apply-extra: apply-extra-gnome apply-extra-codium apply-extra-devtools apply-extra-flatpak apply-extra-gaming apply-extra-business apply-extra-spotx
 
 apply-extra-gnome:
 	$(EXTRA_PLAYBOOK) $(PROJECT_DIR)/extra/gnome/site.yml -i $(PROJECT_DIR)/ansible/inventories/localhost/hosts.yml
@@ -52,6 +53,9 @@ apply-extra-gaming:
 apply-extra-business:
 	$(EXTRA_PLAYBOOK) $(PROJECT_DIR)/extra/business/site.yml -i $(PROJECT_DIR)/ansible/inventories/localhost/hosts.yml
 
+apply-extra-spotx:
+	$(EXTRA_PLAYBOOK) $(PROJECT_DIR)/extra/spotx/site.yml -i $(PROJECT_DIR)/ansible/inventories/localhost/hosts.yml
+
 lint:
 	cd ansible && ansible-playbook --syntax-check site.yml
 	cd ansible && ansible-playbook --syntax-check ../tests/e2e.yml
@@ -61,6 +65,7 @@ lint:
 	cd ansible && ansible-playbook --syntax-check ../extra/gnome/site.yml
 	cd ansible && ansible-playbook --syntax-check ../extra/devtools/site.yml
 	cd ansible && ansible-playbook --syntax-check ../extra/flatpak/site.yml
+	cd ansible && ansible-playbook --syntax-check ../extra/spotx/site.yml
 
 test:
 	$(E2E_PLAYBOOK)
