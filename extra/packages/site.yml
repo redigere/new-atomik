@@ -1,0 +1,71 @@
+---
+- name: Install system packages via rpm-ostree
+  hosts: localhost
+  become: true
+  gather_facts: true
+
+  vars:
+    atomik_rpm_install:
+      - powertop
+      - brave-origin
+      - host-spawn
+      - fish
+      - fontawesome-fonts-all
+      - tuned
+      - tuned-utils
+
+  tasks:
+    - name: Skip in containers
+      when: >
+        ansible_facts.get('virtualization_type', '') == 'container' or
+        ansible_facts.get('file', {}).get('/run/.toolboxenv', {}).get('exists', false)
+      block:
+        - name: Skip message
+          ansible.builtin.debug:
+            msg: "Skipping package installation in container environment"
+        - name: End play
+          ansible.builtin.meta: end_play
+
+    - name: Save toolbox container list
+      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/packages/site/save_toolbox_list.sh"
+      register: toolbox_before
+      changed_when: false
+      failed_when: false
+
+    - name: Install packages via rpm-ostree
+      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/packages/site/install_packages_rpm_ostree.sh"
+      environment:
+        ATOMIK_RPM_INSTALL: "{{ atomik_rpm_install | join(' ') }}"
+      register: rpm_install_result
+      changed_when: "'Queued' in rpm_install_result.stdout"
+      failed_when: false
+
+    - name: Check if live changes are needed
+      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/packages/site/check_live_changes.sh"
+      register: pending_changes
+      changed_when: false
+      failed_when: false
+
+    - name: Apply live changes
+      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/packages/site/apply_live_changes.sh"
+      register: apply_result
+      changed_when: apply_result.rc == 0
+      failed_when: false
+      when: pending_changes.rc == 0
+
+    - name: Verify toolbox containers preserved
+      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/packages/site/verify_toolbox.sh"
+      environment:
+        TOOLBOX_BEFORE: "{{ toolbox_before.stdout }}"
+      register: toolbox_verify
+      changed_when: false
+      failed_when: false
+      when: apply_result.changed
+
+    - name: Warn about missing toolbox containers
+      ansible.builtin.debug:
+        msg: "ATTENZIONE: container toolbox persi dopo apply-live: {{ toolbox_verify.stdout }}"
+      when:
+        - toolbox_verify.stdout_lines is defined
+        - toolbox_verify.stdout_lines | length > 0
+        - toolbox_verify.stdout != "no_toolbox_containers"

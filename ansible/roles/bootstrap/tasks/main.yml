@@ -1,0 +1,6 @@
+---
+- name: Bootstrap Ansible toolchain
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/bootstrap/bootstrap.fish"
+  become: true
+  changed_when: false
+  failed_when: false

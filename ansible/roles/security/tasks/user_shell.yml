@@ -1,0 +1,38 @@
+---
+
+- name: Set default shell to fish
+  ansible.builtin.user:
+    name: "{{ atomik_user }}"
+    shell: "{{ atomik_default_shell }}"
+
+- name: Create fish config directory
+  ansible.builtin.file:
+    path: "/var/home/{{ atomik_user }}/.config/fish"
+    state: directory
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0755"
+
+- name: Deploy fish config
+  ansible.builtin.template:
+    src: config.fish.j2
+    dest: "/var/home/{{ atomik_user }}/.config/fish/config.fish"
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0644"
+
+- name: Create fish functions directory
+  ansible.builtin.file:
+    path: "/var/home/{{ atomik_user }}/.config/fish/functions"
+    state: directory
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0755"
+
+- name: Deploy fish prompt
+  ansible.builtin.template:
+    src: fish_prompt.fish.j2
+    dest: "/var/home/{{ atomik_user }}/.config/fish/functions/fish_prompt.fish"
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0644"

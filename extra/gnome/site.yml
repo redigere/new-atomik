@@ -1,0 +1,124 @@
+---
+- name: Setup GNOME settings
+  hosts: localhost
+  gather_facts: true
+  become: false
+
+  vars:
+    gnome_gsettings:
+      - schema: org.gnome.desktop.interface
+        key: font-name
+        value: "'Cantarell 11'"
+      - schema: org.gnome.desktop.interface
+        key: document-font-name
+        value: "'Cantarell 11'"
+      - schema: org.gnome.desktop.interface
+        key: monospace-font-name
+        value: "'Noto Sans Mono 11'"
+      - schema: org.gnome.desktop.interface
+        key: enable-animations
+        value: "false"
+      - schema: org.gnome.desktop.interface
+        key: show-battery-percentage
+        value: "true"
+      - schema: org.gnome.desktop.interface
+        key: clock-show-weekday
+        value: "true"
+      - schema: org.gnome.desktop.wm.preferences
+        key: button-layout
+        value: "':minimize,maximize,close'"
+      - schema: org.gnome.desktop.wm.preferences
+        key: mouse-button-modifier
+        value: "'<Super>'"
+      - schema: org.gnome.desktop.privacy
+        key: send-technical-reports
+        value: "false"
+      - schema: org.gnome.desktop.privacy
+        key: report-technical-problems
+        value: "false"
+      - schema: org.gnome.desktop.privacy
+        key: hide-identity
+        value: "true"
+      - schema: org.gnome.desktop.privacy
+        key: show-full-name-in-top-bar
+        value: "false"
+      - schema: org.gnome.desktop.peripherals.touchpad
+        key: natural-scroll
+        value: "true"
+      - schema: org.gnome.desktop.peripherals.touchpad
+        key: tap-to-click
+        value: "true"
+      - schema: org.gnome.shell.extensions.dash-to-dock
+        key: dock-position
+        value: "BOTTOM"
+      - schema: org.gnome.shell.extensions.dash-to-dock
+        key: dash-max-icon-size
+        value: "48"
+      - schema: org.gnome.shell.extensions.dash-to-dock
+        key: extend-height
+        value: "false"
+      - schema: org.gnome.shell.extensions.dash-to-dock
+        key: show-trash
+        value: "false"
+      - schema: org.gnome.shell.extensions.dash-to-dock
+        key: show-mounts
+        value: "false"
+      - schema: org.gnome.shell.extensions.dash-to-dock
+        key: show-show-apps-button
+        value: "true"
+      - schema: org.gnome.shell.extensions.dash-to-dock
+        key: autohide-in-fullscreen
+        value: "true"
+      - schema: org.gnome.shell.extensions.dash-to-dock
+        key: intellihide
+        value: "false"
+      - schema: org.gnome.shell.extensions.dash-to-dock
+        key: click-action
+        value: "'minimize'"
+      - schema: org.gnome.shell.extensions.dash-to-dock
+        key: background-opacity
+        value: "0.25"
+      - schema: org.gnome.desktop.wm.preferences
+        key: num-workspaces
+        value: "4"
+      - schema: org.gnome.mutter
+        key: dynamic-workspaces
+        value: "false"
+      - schema: org.gnome.mutter
+        key: edge-tiling
+        value: "true"
+      - schema: org.gnome.settings-daemon.plugins.color
+        key: night-light-enabled
+        value: "true"
+      - schema: org.gnome.settings-daemon.plugins.color
+        key: night-light-temperature
+        value: "3800"
+      - schema: org.gnome.settings-daemon.plugins.media-keys
+        key: max-screencast-length
+        value: "30"
+      - schema: org.gnome.nautilus.preferences
+        key: show-directory-item-counts
+        value: "'never'"
+      - schema: org.gnome.nautilus.preferences
+        key: default-folder-viewer
+        value: "'list-view'"
+      - schema: org.gnome.nautilus.list-view
+        key: default-zoom-level
+        value: "'small'"
+      - schema: org.gnome.desktop.search-providers
+        key: disable-external
+        value: "true"
+      - schema: org.gnome.desktop.sound
+        key: event-sounds
+        value: "false"
+
+  tasks:
+    - name: Apply GNOME gsettings
+      ansible.builtin.command: >
+        gsettings set {{ item.schema }} {{ item.key }} {{ item.value }}
+      loop: "{{ gnome_gsettings }}"
+      loop_control:
+        label: "{{ item.schema }} {{ item.key }}"
+      register: gsettings_result
+      changed_when: gsettings_result.rc == 0
+      failed_when: false

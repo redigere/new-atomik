@@ -1,0 +1,15 @@
+---
+
+- name: Skip in containers
+  when: >
+    ansible_facts.get('virtualization_type', '') == 'container' or
+    ansible_facts.get('file', {}).get('/run/.toolboxenv', {}).get('exists', false)
+  block:
+    - name: Skip message
+      ansible.builtin.debug:
+        msg: "Skipping package management in container environment"
+    - name: End play
+      ansible.builtin.meta: end_play
+
+- name: Manage RPM-OSTree packages
+  ansible.builtin.include_tasks: rpm_ostree.yml

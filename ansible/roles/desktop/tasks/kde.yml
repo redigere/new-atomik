@@ -1,0 +1,108 @@
+---
+- name: Detect KDE config tool
+  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/detect_kde_config_tool.sh"
+  become: true
+  become_user: "{{ atomik_user }}"
+  register: kwriteconfig_result
+  changed_when: false
+
+- name: Set KDE config tool
+  ansible.builtin.set_fact:
+    kde_config_tool: "{{ kwriteconfig_result.stdout }}"
+
+- name: Apply KDE settings
+  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/apply_kde_setting.sh {{ item.file }} {{ item.group }} {{ item.key }} {{ item.value | default('') }}"
+  environment:
+    KDE_CONFIG_TOOL: "{{ kde_config_tool }}"
+  become: true
+  become_user: "{{ atomik_user }}"
+  loop: >-
+    {{ atomik_kde_settings.animations | default([]) +
+       atomik_kde_settings.baloo | default([]) +
+       atomik_kde_settings.power | default([]) +
+       atomik_kde_settings.taskbar | default([]) +
+       atomik_kde_settings.telemetry | default([]) +
+       atomik_kde_settings.wallet | default([]) +
+       atomik_kde_settings.restrictions | default([]) +
+       atomik_kde_settings.compositor | default([]) +
+       atomik_kde_settings.notifications | default([]) +
+       atomik_kde_settings.effects | default([]) +
+       atomik_kde_settings.kded | default([]) +
+       atomik_kde_settings.lock | default([]) +
+       atomik_kde_settings.screen_edges | default([]) }}
+  loop_control:
+    label: "{{ item.file }}/{{ item.group }}/{{ item.key }}"
+  when: item.value is defined and kde_config_tool != 'none'
+
+- name: Remove obsolete KDE animation keys
+  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/remove_obsolete_kde_keys.sh"
+  environment:
+    KDE_CONFIG_TOOL: "{{ kde_config_tool }}"
+  become: true
+  become_user: "{{ atomik_user }}"
+  when: kde_config_tool != 'none'
+
+- name: Deploy KDE power profiles
+  ansible.builtin.copy:
+    content: "{{ atomik_kde_powerdevil }}"
+    dest: "/home/{{ atomik_user }}/.config/powerdevilrc"
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0644"
+  become: true
+
+- name: Disable unwanted KDE autostart entries
+  ansible.builtin.copy:
+    content: |
+      [Desktop Entry]
+      Hidden=true
+    dest: "/home/{{ atomik_user }}/.config/autostart/{{ item }}"
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0644"
+  loop: "{{ atomik_kde_disabled_autostart | default([]) }}"
+  loop_control:
+    label: "{{ item }}"
+  become: true
+
+- name: Mask crashing X11 legacy daemon user units
+  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/mask_x11_legacy_units.sh"
+  environment:
+    ATOMIK_USER: "{{ atomik_user }}"
+  become: true
+  changed_when: false
+
+- name: Create KDE environment config directory
+  ansible.builtin.file:
+    path: "/home/{{ atomik_user }}/.config/environment.d"
+    state: directory
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0755"
+  become: true
+
+- name: Deploy KDE environment config
+  ansible.builtin.copy:
+    content: "{{ atomik_kde_environment }}"
+    dest: "/home/{{ atomik_user }}/.config/environment.d/atomik-kde.conf"
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0644"
+  become: true
+
+- name: Deploy KDE panel setup script
+  ansible.builtin.copy:
+    src: panels.py
+    dest: /tmp/kde_panels.py
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0644"
+  become: true
+
+- name: Run KDE panel setup
+  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/run_kde_panel_setup.sh"
+  become: true
+  become_user: "{{ atomik_user }}"
+  register: panel_result
+  changed_when: panel_result.rc == 0
+  failed_when: false

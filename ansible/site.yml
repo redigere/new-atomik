@@ -1,0 +1,53 @@
+---
+- name: Configure Fedora Atomic system
+  hosts: localhost
+  become: true
+  gather_facts: true
+
+  pre_tasks:
+    - name: Detect OS variant
+      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/site/detect_os_variant.sh"
+      register: variant_result
+      changed_when: false
+      tags: [always]
+
+    - name: Set variant fact
+      ansible.builtin.set_fact:
+        atomik_variant: "{{ variant_result.stdout }}"
+      tags: [always]
+
+    - name: Detect desktop environment
+      ansible.builtin.set_fact:
+        atomik_desktop: >-
+          {%- if atomik_variant == 'kinoite' -%}kde
+          {%- elif atomik_variant == 'cosmic-atomic' -%}cosmic
+          {%- else -%}gnome{%- endif -%}
+      tags: [always]
+
+    - name: Get real user
+      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/site/get_real_user.sh"
+      register: user_result
+      changed_when: false
+      tags: [always]
+
+    - name: Set real user
+      ansible.builtin.set_fact:
+        atomik_user: "{{ user_result.stdout }}"
+      tags: [always]
+
+    - name: Display variant info
+      ansible.builtin.debug:
+        msg: "Variant: {{ atomik_variant }}, Desktop: {{ atomik_desktop }}, User: {{ atomik_user }}"
+      tags: [always]
+
+  roles:
+    - role: bootstrap
+      tags: [bootstrap]
+    - role: repos
+      tags: [repos]
+    - role: packages
+      tags: [packages]
+    - role: security
+      tags: [security]
+    - role: desktop
+      tags: [desktop, gnome, kde]

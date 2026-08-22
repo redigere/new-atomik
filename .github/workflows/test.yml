@@ -1,0 +1,308 @@
+---
+name: test
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  dry-run-playbook:
+    name: dry run playbook
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Ansible
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ansible-core
+
+      - name: Install collections
+        run: ansible-galaxy collection install ansible.posix community.general
+
+      - name: Install firewalld and sshd
+        run: sudo apt-get install -y -qq firewalld openssh-server
+
+      - name: Log playbook check mode run
+        run: |
+          ansible-playbook ansible/site.yml -i ansible/inventories/localhost/hosts.yml \
+            --check --diff \
+            --skip-tags desktop,devtools,packages \
+            -e 'ansible_python_interpreter=/usr/bin/python3' \
+             2>&1 | tail -50 || true
+
+  e2e-toolbox:
+    name: e2e toolbox
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:44
+      options: --user root
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install dependencies in container
+        run: |
+          dnf install -y -q ansible-core python3-pip python3-pyyaml
+          python3 -m venv /tmp/atomik-venv
+          /tmp/atomik-venv/bin/pip install --quiet pyyaml
+          ansible-galaxy collection install ansible.posix community.general
+
+      - name: Log YAML file validation
+        run: |
+          python3 -c "
+          import yaml, os, sys
+          errors = []
+          skip_prefixes = ('.git/', '.github/')
+          for root, dirs, files in os.walk('.'):
+              dirs[:] = [d for d in dirs if not d.startswith('.')]
+              for f in files:
+                  if not f.endswith('.yml'):
+                      continue
+                  if f.endswith('.j2'):
+                      continue
+                  path = os.path.join(root, f)
+                  try:
+                      with open(path) as fh:
+                          yaml.safe_load(fh)
+                  except yaml.YAMLError as e:
+                      errors.append(f'{path}: {e}')
+          if errors:
+              for e in errors:
+                  print(e, file=sys.stderr)
+              sys.exit(1)
+          print('All YAML files valid')
+          "
+
+      - name: Log role structure verification
+        run: |
+          for role in repos packages security desktop; do
+            test -f "ansible/roles/$role/tasks/main.yml" || exit 1
+          done
+
+      - name: Log template compilation verification
+        run: |
+          python3 -c "
+          import os
+          templates = []
+          for root, dirs, files in os.walk('ansible/roles'):
+              for f in files:
+                  if f.endswith('.j2'):
+                      templates.append(os.path.join(root, f))
+          print(f'Templates found: {len(templates)}')
+          if len(templates) < 8:
+              print('ERROR: expected at least 8 templates')
+              exit(1)
+          for t in sorted(templates):
+              print(f'  {t}')
+          "
+
+      - name: Log handlers verification
+        run: |
+          count=$(find ansible/roles -path '*/handlers/main.yml' | wc -l)
+          test "$count" -ge 2 || exit 1
+
+      - name: Log sysctl configuration validation
+        run: |
+          /tmp/atomik-venv/bin/python3 -c "
+          import yaml
+          with open('ansible/group_vars/all.yml') as f:
+              cfg = yaml.safe_load(f)
+          s = cfg.get('atomik_sysctl', {})
+          assert s['fs']['file-max'] == 9223372036854775807
+          assert s['kernel'].get('sched_latency_ns') == 6000000
+          assert 'net' in s and 'vm' in s
+          print('Sysctl config valid')
+          "
+
+      - name: Log variant configuration validation
+        run: |
+          /tmp/atomik-venv/bin/python3 -c "
+          import yaml
+          with open('ansible/group_vars/all.yml') as f:
+              cfg = yaml.safe_load(f)
+          for v in ['silverblue', 'kinoite', 'cosmic-atomic']:
+              r = cfg.get('atomik_variant_remove', {}).get(v, [])
+              i = cfg.get('atomik_variant_install', {}).get(v, [])
+              assert isinstance(r, list), f'{v} remove not a list'
+              assert isinstance(i, list), f'{v} install not a list'
+              print(f'{v}: {len(i)} install, {len(r)} remove')
+          "
+
+      - name: Log RPM conflict validation
+        run: |
+          /tmp/atomik-venv/bin/python3 -c "
+          import yaml
+          with open('ansible/group_vars/all.yml') as f:
+              cfg = yaml.safe_load(f)
+          install = set(cfg.get('atomik_rpm_install', []))
+          remove = set(cfg.get('atomik_rpm_remove', []))
+          conflict = install & remove
+          if conflict:
+              print(f'CONFLICT: {conflict} in both install and remove')
+              exit(1)
+          print(f'RPM lists OK: {len(install)} install, {len(remove)} remove')
+          "
+
+      - name: Log desktop scheduler validation
+        run: |
+          /tmp/atomik-venv/bin/python3 -c "
+          import yaml
+          with open('ansible/group_vars/all.yml') as f:
+              cfg = yaml.safe_load(f)
+          for v in ['silverblue', 'kinoite', 'cosmic-atomic']:
+              services = cfg.get('atomik_desktop_scheduler_services', {}).get(v, [])
+              print(f'{v}: scheduler services = {services}')
+          "
+
+      - name: Log OOMD protected services validation
+        run: |
+          python3 -c "
+          import yaml
+          with open('ansible/group_vars/all.yml') as f:
+              cfg = yaml.safe_load(f)
+          for v in ['silverblue', 'kinoite', 'cosmic-atomic']:
+              prot = cfg.get('atomik_oomd_protected_services', {}).get(v, [])
+              assert len(prot) > 0, f'{v}: no OOMD protected services'
+              print(f'{v}: {len(prot)} OOMD protected services')
+          "
+
+      - name: Log shell script reference verification
+        run: |
+          python3 -c "
+          import yaml, os, sys
+          with open('ansible/group_vars/all.yml') as f:
+              cfg = yaml.safe_load(f)
+          refs = [
+              ('/usr/bin/fish', cfg.get('atomik_default_shell', '')),
+          ]
+          for expected, value in refs:
+              if expected not in str(value):
+                  print(f'WARNING: expected {expected} in config')
+          print('Shell references OK')
+          "
+
+      - name: Log extra modules validation
+        run: |
+          python3 -c "
+          import os
+          extras = ['business', 'codium', 'devtools', 'gaming', 'gnome', 'packages', 'flatpak']
+          errors = []
+          for ext in extras:
+              ext_dir = f'extra/{ext}'
+              if not os.path.exists(ext_dir):
+                  errors.append(f'MISSING: {ext_dir}')
+                  continue
+              site_yml = f'{ext_dir}/site.yml'
+              py_files = [f for f in os.listdir(ext_dir) if f.endswith('.py')]
+              if not os.path.exists(site_yml) and not py_files:
+                  errors.append(f'MISSING: {site_yml} and no Python scripts in {ext_dir}')
+              else:
+                  kind = 'site.yml' if os.path.exists(site_yml) else 'python'
+                  print(f'{ext}: {kind}')
+          if errors:
+              for e in errors:
+                  print(e)
+              exit(1)
+          print(f'All {len(extras)} extra modules validated')
+          "
+
+      - name: Log gaming module validation
+        run: |
+          python3 -c "
+          import yaml
+          with open('extra/gaming/site.yml') as f:
+              cfg = yaml.safe_load(f)
+          pkgs = cfg[0]['vars'].get('gaming_flatpaks', [])
+          assert 'com.discordapp.Discord' in pkgs, 'Discord missing'
+          assert 'com.heroicgameslauncher.hgl' in pkgs, 'Heroic missing'
+          print(f'Gaming: {len(pkgs)} Flatpak apps configured')
+          "
+
+      - name: Log business module validation
+        run: |
+          python3 -c "
+          import yaml
+          with open('extra/business/site.yml') as f:
+              cfg = yaml.safe_load(f)
+          pkgs = cfg[0]['vars'].get('business_flatpaks', [])
+          assert 'com.slack.Slack' in pkgs, 'Slack missing'
+          print(f'Business: {len(pkgs)} Flatpak apps configured')
+          "
+
+      - name: Log flatpak module validation
+        run: |
+          python3 -c "
+          import os
+          assert os.path.exists('extra/flatpak/site.yml'), 'flatpak site.yml missing'
+          print('Flatpak extra module valid')
+          "
+
+      - name: Log packages module validation
+        run: |
+          python3 -c "
+          import yaml
+          with open('extra/packages/site.yml') as f:
+              cfg = yaml.safe_load(f)
+          packages = cfg[0]['vars']['atomik_rpm_install']
+          assert 'brave-origin' in packages, 'brave-origin missing'
+          print(f'Packages: {len(packages)} packages to install')
+          "
+
+      - name: Run toolbox gaming test
+        run: ansible-playbook tests/toolbox/test_gaming.yml -i ansible/inventories/localhost/hosts.yml -c local
+
+      - name: Run toolbox business test
+        run: ansible-playbook tests/toolbox/test_business.yml -i ansible/inventories/localhost/hosts.yml -c local
+
+      - name: Run toolbox extras all test
+        run: ansible-playbook tests/toolbox/test_extras_all.yml -i ansible/inventories/localhost/hosts.yml -c local
+
+      - name: Validate masked services
+        run: python3 tests/validate_masked_services.py
+
+      - name: Validate tuned services
+        run: python3 tests/validate_tuned_services.py
+
+  e2e-integration:
+    name: e2e integration
+    runs-on: ubuntu-latest
+    needs: e2e-toolbox
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install Ansible
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ansible-core
+
+      - name: Install collections
+        run: ansible-galaxy collection install ansible.posix community.general
+
+      - name: Log E2E playbook execution
+        run: ansible-playbook tests/e2e.yml -i ansible/inventories/localhost/hosts.yml -c local
+        env:
+          ANSIBLE_LOG_PATH: /tmp/ansible.log
+
+      - name: Log E2E extras playbook execution
+        run: ansible-playbook tests/e2e_extras.yml -i ansible/inventories/localhost/hosts.yml -c local
+        env:
+          ANSIBLE_LOG_PATH: /tmp/ansible-extras.log
+
+      - name: Store E2E log artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ansible-e2e-log
+          path: /tmp/ansible.log

@@ -1,0 +1,14 @@
+---
+- name: Enable and start firewalld
+  ansible.builtin.systemd:
+    name: firewalld
+    state: started
+    enabled: true
+  failed_when: false
+
+- name: Add firewall services
+  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/security/tasks/firewall/add_firewall_service.sh {{ item }}"
+  loop: "{{ atomik_firewall_services }}"
+  register: firewall_result
+  changed_when: firewall_result.rc == 0
+  failed_when: false

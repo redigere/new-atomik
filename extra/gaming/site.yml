@@ -1,0 +1,77 @@
+---
+- name: Setup gaming environment
+  hosts: localhost
+  become: true
+  gather_facts: true
+
+  vars:
+    gaming_flatpaks:
+      - com.discordapp.Discord
+      - com.heroicgameslauncher.hgl
+
+    gaming_flatpak_overrides:
+      com.discordapp.Discord:
+        env:
+          ELECTRON_OZONE_PLATFORM_HINT: auto
+          XDG_CURRENT_DESKTOP: pop:GNOME
+        filesystems:
+          - xdg-cache:create
+          - xdg-config:create
+        talk: true
+      com.heroicgameslauncher.hgl:
+        env:
+          DXVK_HUD: 0
+        filesystems:
+          - home:create
+          - /run/media:create
+          - /mnt:create
+
+  tasks:
+    - name: Skip in containers
+      when: >
+        ansible_facts.get('virtualization_type', '') == 'container' or
+        ansible_facts.get('file', {}).get('/run/.toolboxenv', {}).get('exists', false)
+      block:
+        - name: Skip message
+          ansible.builtin.debug:
+            msg: "Skipping gaming setup in container environment"
+        - name: End play
+          ansible.builtin.meta: end_play
+
+    - name: Install gaming Flatpaks
+      community.general.flatpak:
+        name: "{{ item }}"
+        remote: flathub
+        state: present
+        method: user
+      loop: "{{ gaming_flatpaks }}"
+      loop_control:
+        label: "{{ item }}"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+      register: flatpak_install
+      changed_when: flatpak_install is changed
+      failed_when: false
+
+    - name: Apply gaming Flatpak overrides
+      ansible.builtin.shell: |
+        OVERRIDE_CMD="flatpak override --user"
+        {% for env_key, env_val in item.value.env | default({}) | dict2items %}
+        OVERRIDE_CMD="$OVERRIDE_CMD --env={{ env_key }}={{ env_val }}"
+        {% endfor %}
+        {% for fs in item.value.filesystems | default([]) %}
+        OVERRIDE_CMD="$OVERRIDE_CMD --filesystem={{ fs }}"
+        {% endfor %}
+        {% if item.value.talk | default(false) %}
+        OVERRIDE_CMD="$OVERRIDE_CMD --talk"
+        {% endif %}
+        $OVERRIDE_CMD {{ item.key }}
+      loop: "{{ gaming_flatpak_overrides | dict2items }}"
+      loop_control:
+        label: "{{ item.key }}"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+      register: override_result
+      changed_when: override_result.rc == 0
+      failed_when: false
+      when: item.value is defined

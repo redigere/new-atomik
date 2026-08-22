@@ -1,0 +1,23 @@
+---
+
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Set sshd service name fact
+  ansible.builtin.set_fact:
+    atomik_sshd_service: "{{ 'ssh' if 'ssh.service' in ansible_facts.services else 'sshd' }}"
+
+- name: Enable sshd
+  ansible.builtin.systemd:
+    name: "{{ atomik_sshd_service }}"
+    state: started
+    enabled: true
+
+- name: Deploy SSH hardening config
+  ansible.builtin.copy:
+    content: "{{ atomik_ssh_config }}"
+    dest: /etc/ssh/sshd_config.d/99-atomik.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload sshd
