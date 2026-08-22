@@ -1,4 +1,13 @@
 ---
+- name: Create COSMIC environment config directory
+  ansible.builtin.file:
+    path: "/home/{{ atomik_user }}/.config/environment.d"
+    state: directory
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0755"
+  become: true
+
 - name: Deploy COSMIC environment config
   ansible.builtin.copy:
     content: "{{ atomik_cosmic_environment }}"
