@@ -16,7 +16,6 @@
         filesystems:
           - xdg-cache:create
           - xdg-config:create
-        talk: true
 
   tasks:
     - name: Skip in containers

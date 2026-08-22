@@ -8,7 +8,4 @@ done
 for fs in $OVERRIDE_FILESYSTEMS; do
   OVERRIDE_CMD="$OVERRIDE_CMD --filesystem=$fs"
 done
-if [ "${OVERRIDE_TALK:-false}" = "true" ]; then
-  OVERRIDE_CMD="$OVERRIDE_CMD --talk"
-fi
 $OVERRIDE_CMD "$FLATPAK_ID"

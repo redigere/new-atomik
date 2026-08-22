@@ -17,7 +17,6 @@
         filesystems:
           - xdg-cache:create
           - xdg-config:create
-        talk: true
       com.heroicgameslauncher.hgl:
         env:
           DXVK_HUD: 0
@@ -62,9 +61,6 @@
         {% for fs in item.value.filesystems | default([]) %}
         OVERRIDE_CMD="$OVERRIDE_CMD --filesystem={{ fs }}"
         {% endfor %}
-        {% if item.value.talk | default(false) %}
-        OVERRIDE_CMD="$OVERRIDE_CMD --talk"
-        {% endif %}
         $OVERRIDE_CMD {{ item.key }}
       loop: "{{ gaming_flatpak_overrides | dict2items }}"
       loop_control:
