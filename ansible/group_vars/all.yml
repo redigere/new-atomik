@@ -493,8 +493,6 @@ atomik_rpm_install:
 atomik_rpm_remove:
   - firefox
   - firefox-langpacks
-  - google-noto-emoji-fonts
-  - default-fonts-core-emoji
   - libreoffice-core
   - libreoffice-draw
   - libreoffice-impress
