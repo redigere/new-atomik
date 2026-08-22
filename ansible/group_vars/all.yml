@@ -311,6 +311,7 @@ atomik_variant_remove:
   cosmic-atomic:
     - adwaita-qt5
     - adwaita-qt6
+    # ark (KDE archiver) crashes under COSMIC; file-roller is used instead (see atomik_variant_install)
     - ark
     - fedora-chromium-config
     - kio-extras
@@ -488,6 +489,7 @@ atomik_rpm_install:
   - host-spawn
   - fish
   - fontawesome-fonts-all
+  - perl
   - tuned-utils
 
 atomik_rpm_remove:

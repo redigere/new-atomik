@@ -9,6 +9,15 @@
       - name: flathub
         url: https://dl.flathub.org/repo/flathub.flatpakrepo
         state: present
+    atomik_flatpaks:
+      - com.spotify.Client
+      - org.texstudio.TeXstudio
+      - org.videolan.VLC
+      - org.gimp.GIMP
+      - org.keepassxc.KeePassXC
+      - io.github.flattool.Warehouse
+      - com.usebottles.bottles
+      - org.mozilla.Thunderbird
 
   tasks:
     - name: Skip in containers
@@ -48,4 +57,19 @@
       become_user: "{{ ansible_user_id }}"
       register: remote_result
       changed_when: remote_result is changed
+      failed_when: false
+
+    - name: Install Atomik Flatpaks
+      community.general.flatpak:
+        name: "{{ item }}"
+        remote: flathub
+        state: present
+        method: user
+      loop: "{{ atomik_flatpaks }}"
+      loop_control:
+        label: "{{ item }}"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+      register: flatpak_app_install
+      changed_when: flatpak_app_install is changed
       failed_when: false
