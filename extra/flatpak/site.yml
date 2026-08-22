@@ -38,7 +38,7 @@
     - name: Ensure Flatpak remotes
       community.general.flatpak_remote:
         name: "{{ item.name }}"
-        url: "{{ item.url }}"
+        flatpakrepo_url: "{{ item.url }}"
         state: "{{ item.state }}"
         method: user
       loop: "{{ flatpak_remotes }}"
