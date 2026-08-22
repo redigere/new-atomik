@@ -1227,3 +1227,5 @@ atomik_gnome_environment: |
 
 atomik_cosmic_environment: |
   QT_QPA_PLATFORM=wayland
+  ELECTRON_ENABLE_WAYLAND=1
+  MOZ_ENABLE_WAYLAND=1
