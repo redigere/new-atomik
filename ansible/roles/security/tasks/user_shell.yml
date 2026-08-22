@@ -36,3 +36,10 @@
     owner: "{{ atomik_user }}"
     group: "{{ atomik_user }}"
     mode: "0644"
+
+- name: Install oh-my-fish
+  ansible.builtin.shell: "test -d /var/home/{{ atomik_user }}/.local/share/omf || (curl -sL https://get.oh-my.fish -o /tmp/omf-install.fish && yes | fish /tmp/omf-install.fish)"
+  become: true
+  become_user: "{{ atomik_user }}"
+  changed_when: false
+  failed_when: false
