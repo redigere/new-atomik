@@ -106,3 +106,15 @@
   register: panel_result
   changed_when: panel_result.rc == 0
   failed_when: false
+
+- name: Terminal opens in current working directory
+  ansible.builtin.shell: |
+    PROFILE=$(kreadconfig6 --file konsolerc --group "Desktop Entry" --key DefaultProfile 2>/dev/null)
+    if [ -n "$PROFILE" ]; then
+      PF="$HOME/.local/share/konsole/$PROFILE"
+      [ -f "$PF" ] && sed -i '/^Directory=/d' "$PF"
+    fi
+  become: true
+  become_user: "{{ atomik_user }}"
+  changed_when: false
+  failed_when: false
