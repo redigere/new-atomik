@@ -8,3 +8,7 @@
   ansible.builtin.include_tasks: kde.yml
   when: atomik_desktop == 'kde'
 
+- name: Apply COSMIC desktop settings
+  ansible.builtin.include_tasks: cosmic.yml
+  when: atomik_desktop == 'cosmic'
+

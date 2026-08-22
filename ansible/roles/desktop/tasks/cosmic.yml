@@ -1,0 +1,16 @@
+---
+- name: Deploy COSMIC environment config
+  ansible.builtin.copy:
+    content: "{{ atomik_cosmic_environment }}"
+    dest: "/home/{{ atomik_user }}/.config/environment.d/atomik-cosmic.conf"
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0644"
+  become: true
+
+- name: Apply COSMIC desktop settings
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/cosmic/apply_cosmic_settings.fish"
+  become: true
+  become_user: "{{ atomik_user }}"
+  changed_when: false
+  failed_when: false

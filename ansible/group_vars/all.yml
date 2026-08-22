@@ -1224,3 +1224,6 @@ atomik_gnome_environment: |
   CLUTTER_BACKEND=wayland
   CLUTTER_SHOW_FPS=0
   __GL_MaxFramesAllowed=1
+
+atomik_cosmic_environment: |
+  QT_QPA_PLATFORM=wayland
