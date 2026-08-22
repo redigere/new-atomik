@@ -1113,12 +1113,6 @@ atomik_kde_config_files:
   - kcminputrc
   - kscreenlockerrc
 
-
-atomik_ego_extensions:
-  - dash-to-dock@micxgx.gmail.com
-atomik_ego_base_url: "https://extensions.gnome.org"
-atomik_ego_install_dir: "/home/{{ atomik_user }}/.local/share/gnome-shell/extensions"
-
 atomik_gnome_dconf_full:
   - path: /org/gnome/desktop/interface/enable-animations
     value: "false"
