@@ -43,3 +43,10 @@
   become_user: "{{ atomik_user }}"
   changed_when: false
   failed_when: false
+
+- name: Fix OMF key bindings recursion bug
+  ansible.builtin.shell: "python3 {{ inventory_dir }}/../../scripts/site/fix_omf_key_bindings.py"
+  become: true
+  become_user: "{{ atomik_user }}"
+  changed_when: false
+  failed_when: false
