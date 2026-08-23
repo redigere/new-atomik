@@ -45,7 +45,7 @@
   failed_when: false
 
 - name: Fix OMF key bindings recursion bug
-  ansible.builtin.shell: "python3 {{ inventory_dir }}/../../scripts/site/fix_omf_key_bindings.py"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/site/fix_omf_key_bindings.fish"
   become: true
   become_user: "{{ atomik_user }}"
   changed_when: false
