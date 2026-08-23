@@ -1,4 +1,11 @@
 ---
+
+- name: Check fish availability
+  ansible.builtin.command: which fish
+  register: fish_check
+  changed_when: false
+  failed_when: false
+
 - name: Create COSMIC environment config directory
   ansible.builtin.file:
     path: "/home/{{ atomik_user }}/.config/environment.d"
@@ -23,3 +30,4 @@
   become_user: "{{ atomik_user }}"
   changed_when: false
   failed_when: false
+  when: fish_check.rc == 0
