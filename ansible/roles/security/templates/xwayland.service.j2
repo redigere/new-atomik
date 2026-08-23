@@ -1,0 +1,11 @@
+[Unit]
+Description=XWayland for X11 apps
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/Xwayland :0 -ac
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

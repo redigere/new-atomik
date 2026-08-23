@@ -58,3 +58,20 @@
   changed_when: false
   failed_when: false
   when: fish_check.rc == 0
+
+- name: Deploy XWayland user service
+  ansible.builtin.template:
+    src: xwayland.service.j2
+    dest: "/var/home/{{ atomik_user }}/.config/systemd/user/xwayland.service"
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0644"
+
+- name: Enable XWayland service
+  ansible.builtin.systemd:
+    name: xwayland
+    enabled: true
+    scope: user
+  become: true
+  become_user: "{{ atomik_user }}"
+  failed_when: false
