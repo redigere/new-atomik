@@ -27,13 +27,13 @@
           ansible.builtin.meta: end_play
 
     - name: Save toolbox container list
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/packages/site/save_toolbox_list.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/packages/site/save_toolbox_list.fish"
       register: toolbox_before
       changed_when: false
       failed_when: false
 
     - name: Install packages via rpm-ostree
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/packages/site/install_packages_rpm_ostree.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/packages/site/install_packages_rpm_ostree.fish"
       environment:
         ATOMIK_RPM_INSTALL: "{{ atomik_rpm_install | join(' ') }}"
       register: rpm_install_result
@@ -41,20 +41,20 @@
       failed_when: false
 
     - name: Check if live changes are needed
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/packages/site/check_live_changes.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/packages/site/check_live_changes.fish"
       register: pending_changes
       changed_when: false
       failed_when: false
 
     - name: Apply live changes
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/packages/site/apply_live_changes.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/packages/site/apply_live_changes.fish"
       register: apply_result
       changed_when: apply_result.rc == 0
       failed_when: false
       when: pending_changes.rc == 0
 
     - name: Verify toolbox containers preserved
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/packages/site/verify_toolbox.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/packages/site/verify_toolbox.fish"
       environment:
         TOOLBOX_BEFORE: "{{ toolbox_before.stdout }}"
       register: toolbox_verify

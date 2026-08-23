@@ -1,6 +1,6 @@
 ---
 - name: Detect KDE config tool
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/detect_kde_config_tool.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/detect_kde_config_tool.fish"
   become: true
   become_user: "{{ atomik_user }}"
   register: kwriteconfig_result
@@ -11,7 +11,7 @@
     kde_config_tool: "{{ kwriteconfig_result.stdout }}"
 
 - name: Apply KDE settings
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/apply_kde_setting.sh {{ item.file }} {{ item.group }} {{ item.key }} {{ item.value | default('') }}"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/apply_kde_setting.fish {{ item.file }} {{ item.group }} {{ item.key }} {{ item.value | default('') }}"
   environment:
     KDE_CONFIG_TOOL: "{{ kde_config_tool }}"
   become: true
@@ -35,7 +35,7 @@
   when: item.value is defined and kde_config_tool != 'none'
 
 - name: Remove obsolete KDE animation keys
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/remove_obsolete_kde_keys.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/remove_obsolete_kde_keys.fish"
   environment:
     KDE_CONFIG_TOOL: "{{ kde_config_tool }}"
   become: true
@@ -66,7 +66,7 @@
   become: true
 
 - name: Mask crashing X11 legacy daemon user units
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/mask_x11_legacy_units.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/mask_x11_legacy_units.fish"
   environment:
     ATOMIK_USER: "{{ atomik_user }}"
   become: true
@@ -100,7 +100,7 @@
   become: true
 
 - name: Run KDE panel setup
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/run_kde_panel_setup.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/run_kde_panel_setup.fish"
   become: true
   become_user: "{{ atomik_user }}"
   register: panel_result

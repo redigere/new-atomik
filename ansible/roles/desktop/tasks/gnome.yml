@@ -1,6 +1,6 @@
 ---
 - name: Apply GNOME desktop settings
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/gnome/apply_gnome_settings.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/gnome/apply_gnome_settings.fish"
   become: true
   become_user: "{{ atomik_user }}"
   changed_when: false
@@ -25,7 +25,7 @@
   become: true
 
 - name: Apply full dconf settings
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/gnome/apply_dconf_setting.sh {{ item.path }} {{ item.value }}"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/gnome/apply_dconf_setting.fish {{ item.path }} {{ item.value }}"
   become: true
   become_user: "{{ atomik_user }}"
   loop: "{{ atomik_gnome_dconf_full }}"

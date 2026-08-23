@@ -123,7 +123,7 @@
         mode: "0755"
 
     - name: Install Open VSX extensions
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/codium/site/install_openvsx_extensions.sh {{ item }}"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/codium/site/install_openvsx_extensions.fish {{ item }}"
       environment:
         CODIUM_INSTALL_DIR: "{{ codium_install_dir }}"
       loop: "{{ codium_openvsx_extensions }}"
@@ -134,7 +134,7 @@
       failed_when: false
 
     - name: Install Microsoft VSIX extensions
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/codium/site/install_microsoft_vsix.sh {{ item }}"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/codium/site/install_microsoft_vsix.fish {{ item }}"
       environment:
         CODIUM_INSTALL_DIR: "{{ codium_install_dir }}"
       loop: "{{ codium_microsoft_extensions }}"
@@ -145,7 +145,7 @@
       failed_when: false
 
     - name: Clean cache and telemetry
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/codium/site/clean_codium_cache.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/codium/site/clean_codium_cache.fish"
       environment:
         CODIUM_CONFIG_DIR: "{{ codium_config_dir }}"
       changed_when: false

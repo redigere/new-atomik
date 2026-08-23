@@ -5,17 +5,17 @@
     state: reloaded
 
 - name: Reload sysctl
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/security/handlers/reload_sysctl.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/security/handlers/reload_sysctl.fish"
 
 - name: Reload systemd
   ansible.builtin.systemd:
     daemon_reload: true
 
 - name: Reload udev
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/security/handlers/reload_udev.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/security/handlers/reload_udev.fish"
 
 - name: Apply tuned profile
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/security/handlers/apply_tuned_profile.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/security/handlers/apply_tuned_profile.fish"
 
 - name: Enable thermald
   ansible.builtin.systemd:
@@ -46,4 +46,4 @@
     state: restarted
 
 - name: Rebuild grub
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/security/handlers/rebuild_grub.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/security/handlers/rebuild_grub.fish"

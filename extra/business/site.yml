@@ -45,7 +45,7 @@
       failed_when: false
 
     - name: Apply business Flatpak overrides
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/business/site/apply_flatpak_overrides.sh {{ item.key }}"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/business/site/apply_flatpak_overrides.fish {{ item.key }}"
       environment:
         OVERRIDE_ENVS: "{{ item.value.env | default({}) | dict2items | map('join', '=') | join(' ') }}"
         OVERRIDE_FILESYSTEMS: "{{ item.value.filesystems | default([]) | join(' ') }}"

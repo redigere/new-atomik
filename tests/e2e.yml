@@ -8,7 +8,7 @@
 
   pre_tasks:
     - name: Detect OS variant
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/tests/e2e/detect_os_variant.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/tests/e2e/detect_os_variant.fish"
       register: variant_result
       changed_when: false
 
@@ -24,7 +24,7 @@
           {%- else -%}gnome{%- endif -%}
 
     - name: Get real user
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/tests/e2e/get_real_user.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/tests/e2e/get_real_user.fish"
       register: user_result
       changed_when: false
 

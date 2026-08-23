@@ -32,13 +32,13 @@
           ansible.builtin.meta: end_play
 
     - name: Ensure flatpak is installed
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/flatpak/site/ensure_flatpak_installed.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/flatpak/site/ensure_flatpak_installed.fish"
       register: flatpak_install
       changed_when: "'Queued' in flatpak_install.stdout"
       failed_when: false
 
     - name: Apply live changes if needed
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/flatpak/site/apply_flatpak_live.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/flatpak/site/apply_flatpak_live.fish"
       register: apply_flatpak
       changed_when: apply_flatpak.rc == 0
       failed_when: false

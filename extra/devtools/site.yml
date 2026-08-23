@@ -158,7 +158,7 @@
         mode: "0755"
 
     - name: Migrate .bash.d to .bashrc.d
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/devtools/site/migrate_bash_d.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/devtools/site/migrate_bash_d.fish"
       environment:
         BASH_D_LINK: "{{ devtools_bash_d_link | expanduser }}"
         BASH_D: "{{ devtools_bash_d | expanduser }}"
@@ -195,7 +195,7 @@
         mode: "0644"
 
     - name: Install nvm
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/devtools/site/install_nvm.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/devtools/site/install_nvm.fish"
       args:
         creates: "~/.nvm/nvm.sh"
       register: nvm_result
@@ -217,7 +217,7 @@
       become: false
 
     - name: Install pnpm
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/devtools/site/install_pnpm.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/devtools/site/install_pnpm.fish"
       args:
         creates: "~/.local/share/pnpm/bin/pnpm"
       register: pnpm_result
@@ -239,7 +239,7 @@
       become: false
 
     - name: Install rustup
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/devtools/site/install_rustup.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/devtools/site/install_rustup.fish"
       args:
         creates: "~/.cargo/bin/cargo"
       register: rustup_result
@@ -261,7 +261,7 @@
       become: false
 
     - name: Install opencode
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/devtools/site/install_opencode.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/devtools/site/install_opencode.fish"
       args:
         creates: "~/.opencode/bin/opencode"
       register: opencode_result
@@ -283,7 +283,7 @@
       become: false
 
     - name: Install sdkman
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/devtools/site/install_sdkman.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/devtools/site/install_sdkman.fish"
       args:
         creates: "~/.sdkman/bin/sdkman-init.sh"
       register: sdkman_result

@@ -1,12 +1,12 @@
 ---
 - name: Save toolbox container list
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/save_toolbox_list.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/save_toolbox_list.fish"
   register: toolbox_before
   changed_when: false
   failed_when: false
 
 - name: Install common packages
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/install_common_packages.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/install_common_packages.fish"
   environment:
     ATOMIK_RPM_INSTALL: "{{ atomik_rpm_install | default([]) | join(' ') }}"
   when: atomik_rpm_install | default([]) | length > 0
@@ -15,7 +15,7 @@
   failed_when: false
 
 - name: Install variant-specific packages
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/install_variant_packages.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/install_variant_packages.fish"
   environment:
     ATOMIK_VARIANT_PACKAGES: "{{ atomik_variant_install[atomik_variant] | default([]) | join(' ') }}"
   when: atomik_variant_install[atomik_variant] | default([]) | length > 0
@@ -24,7 +24,7 @@
   failed_when: false
 
 - name: Remove variant-specific packages
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/remove_variant_packages.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/remove_variant_packages.fish"
   environment:
     ATOMIK_VARIANT_REMOVE: "{{ atomik_variant_remove[atomik_variant] | default([]) | join(' ') }}"
   when: atomik_variant_remove[atomik_variant] | default([]) | length > 0
@@ -33,7 +33,7 @@
   failed_when: false
 
 - name: Remove common packages
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/remove_common_packages.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/remove_common_packages.fish"
   environment:
     ATOMIK_RPM_REMOVE: "{{ atomik_rpm_remove | default([]) | join(' ') }}"
   when: atomik_rpm_remove | default([]) | length > 0
@@ -42,20 +42,20 @@
   failed_when: false
 
 - name: Check if live changes are needed
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/check_live_changes.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/check_live_changes.fish"
   register: pending_changes
   changed_when: false
   failed_when: false
 
 - name: Apply live changes
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/apply_live_changes.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/apply_live_changes.fish"
   register: apply_result
   changed_when: apply_result.rc == 0
   failed_when: false
   when: pending_changes.rc == 0
 
 - name: Verify toolbox containers preserved
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/verify_toolbox.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/verify_toolbox.fish"
   environment:
     TOOLBOX_BEFORE: "{{ toolbox_before.stdout }}"
   register: toolbox_verify

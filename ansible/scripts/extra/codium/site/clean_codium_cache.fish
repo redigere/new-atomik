@@ -1,0 +1,11 @@
+#!/usr/bin/env fish
+rm -rf "$CODIUM_CONFIG_DIR/Cache"
+rm -rf "$CODIUM_CONFIG_DIR/CachedData"
+rm -rf "$CODIUM_CONFIG_DIR/CachedExtensionVSIXs"
+rm -rf "$CODIUM_CONFIG_DIR/CachedExtensions"
+rm -rf "$CODIUM_CONFIG_DIR/Code Cache"
+rm -rf "$CODIUM_CONFIG_DIR/GPUCache"
+rm -rf "$CODIUM_CONFIG_DIR/logs"
+rm -rf "$CODIUM_CONFIG_DIR/Service Worker"
+rm -rf "$CODIUM_CONFIG_DIR/sessionStorage"
+rm -rf "$CODIUM_CONFIG_DIR/blob_storage"

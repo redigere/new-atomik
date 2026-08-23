@@ -18,7 +18,7 @@
     mode: "0644"
 
 - name: Apply mount tuning
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/security/tasks/io/apply_mount_tuning.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/security/tasks/io/apply_mount_tuning.fish"
   register: mount_result
   changed_when: false
   failed_when: false

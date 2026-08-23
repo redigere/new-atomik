@@ -6,7 +6,7 @@
 
   pre_tasks:
     - name: Detect OS variant
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/site/detect_os_variant.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/site/detect_os_variant.fish"
       register: variant_result
       changed_when: false
       tags: [always]
@@ -25,7 +25,7 @@
       tags: [always]
 
     - name: Get real user
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/site/get_real_user.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/site/get_real_user.fish"
       register: user_result
       changed_when: false
       tags: [always]

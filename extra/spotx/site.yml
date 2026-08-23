@@ -21,7 +21,7 @@
       failed_when: false
 
     - name: Apply SpotX ad-block patch
-      ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/extra/spotx/apply_spotx.sh"
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/spotx/apply_spotx.fish"
       become: true
       become_user: "{{ ansible_user_id }}"
       changed_when: false

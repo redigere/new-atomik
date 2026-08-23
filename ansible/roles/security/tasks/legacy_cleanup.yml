@@ -95,7 +95,7 @@
   failed_when: false
 
 - name: Clean legacy transaction temp dirs
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/security/tasks/legacy_cleanup/clean_transaction_temp.sh"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/security/tasks/legacy_cleanup/clean_transaction_temp.fish"
   environment:
     ATOMIK_USER: "{{ atomik_user }}"
   failed_when: false

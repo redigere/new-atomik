@@ -7,7 +7,7 @@
   failed_when: false
 
 - name: Add firewall services
-  ansible.builtin.shell: "bash {{ inventory_dir }}/../../scripts/ansible/roles/security/tasks/firewall/add_firewall_service.sh {{ item }}"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/security/tasks/firewall/add_firewall_service.fish {{ item }}"
   loop: "{{ atomik_firewall_services }}"
   register: firewall_result
   changed_when: firewall_result.rc == 0
