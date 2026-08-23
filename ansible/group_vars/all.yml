@@ -9,6 +9,7 @@ atomik_variant_install:
   kinoite: []
   cosmic-atomic:
     - file-roller
+    - xwayland-satellite
 
 atomik_variant_remove:
   silverblue:
