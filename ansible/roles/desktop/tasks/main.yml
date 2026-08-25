@@ -1,5 +1,30 @@
 ---
 
+- name: Deploy emoji font fallback configuration
+  ansible.builtin.copy:
+    content: |
+      <?xml version="1.0"?>
+      <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+      <fontconfig>
+        <match target="scan">
+          <test name="family"><string>Noto Color Emoji</string></test>
+          <edit name="scalable" mode="assign"><bool>true</bool></edit>
+        </match>
+        <alias binding="weak">
+          <family>emoji</family>
+          <prefer><family>Noto Color Emoji</family></prefer>
+        </alias>
+        <match>
+          <test name="family" compare="not_eq"><string>Noto Color Emoji</string></test>
+          <edit name="family" mode="append" binding="weak"><string>Noto Color Emoji</string></edit>
+        </match>
+      </fontconfig>
+    dest: /etc/fonts/conf.d/99-atomik-emoji.conf
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+
 - name: Apply GNOME desktop settings
   ansible.builtin.include_tasks: gnome.yml
   when: atomik_desktop == 'gnome'

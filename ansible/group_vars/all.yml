@@ -487,7 +487,6 @@ atomik_variant_remove:
 atomik_rpm_install:
   - powertop
   - brave-origin
-  - host-spawn
   - fish
   - fontawesome-fonts-all
   - perl
@@ -512,6 +511,7 @@ atomik_rpm_remove:
   - libreoffice-data-en-US
   - libreoffice-gtk3
   - libsane-hpaio
+  - host-spawn
 
 atomik_repositories:
   brave-browser:
@@ -725,6 +725,8 @@ atomik_oomd_protected_services:
     - alsa-state
   cosmic-atomic:
     - cosmic-comp
+    - cosmic-session
+    - cosmic-panel
     - pipewire
     - pipewire-pulse
     - wireplumber
@@ -1081,7 +1083,6 @@ atomik_kde_disabled_autostart:
   - org.kde.discover.notifier.desktop
   - org.kde.kdeconnect.daemon.desktop
   - org.kde.kunifiedpush-distributor.desktop
-  - org.kde.xwaylandvideobridge.desktop
   - pam_kwallet_init.desktop
   - xembedsniproxy.desktop
 
@@ -1228,6 +1229,6 @@ atomik_gnome_environment: |
 
 atomik_cosmic_environment: |
   QT_QPA_PLATFORM=wayland
-  ELECTRON_ENABLE_WAYLAND=1
+  ELECTRON_OZONE_PLATFORM_HINT=auto
   MOZ_ENABLE_WAYLAND=1
   DISPLAY=:0

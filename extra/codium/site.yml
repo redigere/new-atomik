@@ -4,6 +4,15 @@
   become: true
   gather_facts: true
 
+  pre_tasks:
+    - name: Detect real user
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/site/get_real_user.fish"
+      register: user_result
+      changed_when: false
+    - name: Set real user fact
+      ansible.builtin.set_fact:
+        ansible_user_id: "{{ user_result.stdout }}"
+
   vars:
     codium_install_dir: "/var/home/{{ ansible_user_id }}/.local/share/codium"
     codium_config_dir: "/var/home/{{ ansible_user_id }}/.config/VSCodium"

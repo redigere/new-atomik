@@ -31,3 +31,43 @@
   changed_when: false
   failed_when: false
   when: fish_check.rc == 0
+
+- name: Create systemd user directory
+  ansible.builtin.file:
+    path: "/home/{{ atomik_user }}/.config/systemd/user"
+    state: directory
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0755"
+  become: true
+
+- name: Deploy XWayland (xwayland-satellite) user service for X11 compatibility
+  ansible.builtin.copy:
+    content: |
+      [Unit]
+      Description=XWayland via xwayland-satellite for X11 app compatibility
+      PartOf=graphical-session.target
+      After=graphical-session.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/bin/xwayland-satellite :0
+      Restart=always
+      RestartSec=2
+
+      [Install]
+      WantedBy=graphical-session.target
+    dest: "/home/{{ atomik_user }}/.config/systemd/user/xwayland-satellite.service"
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0644"
+  become: true
+
+- name: Enable XWayland service by default
+  ansible.builtin.systemd:
+    name: xwayland-satellite
+    enabled: true
+    scope: user
+  become: true
+  become_user: "{{ atomik_user }}"
+  failed_when: false

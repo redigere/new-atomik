@@ -4,6 +4,15 @@
   become: true
   gather_facts: true
 
+  pre_tasks:
+    - name: Detect real user
+      ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/site/get_real_user.fish"
+      register: user_result
+      changed_when: false
+    - name: Set real user fact
+      ansible.builtin.set_fact:
+        ansible_user_id: "{{ user_result.stdout }}"
+
   vars:
     flatpak_remotes:
       - name: flathub
@@ -11,13 +20,12 @@
         state: present
     atomik_flatpaks:
       - com.spotify.Client
-      - org.texstudio.TeXstudio
+      - org.kde.Kile
       - org.videolan.VLC
 
-      - org.keepassxc.KeePassXC
-      - io.github.flattool.Warehouse
       - com.usebottles.bottles
-      - org.mozilla.Thunderbird
+      - eu.betterbird.Betterbird
+      - com.github.wwmm.easyeffects
 
   tasks:
     - name: Skip in containers
