@@ -297,7 +297,7 @@ atomik_variant_remove:
     - kwin-x11
     - oxygen-sounds
     - sddm-kcm
-    - plasma-nano
+    - plasma-micro
     - plasma-mobile
     - plasma-browser-integration
     - fedora-chromium-config-kde
@@ -400,7 +400,7 @@ atomik_variant_remove:
     - plasma-integration
     - plasma-pa
     - plasma-systemmonitor
-    - plasma-nano
+    - plasma-micro
     - plasma-mobile
     - plasma5-integration
     - xdg-desktop-portal-kde

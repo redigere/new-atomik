@@ -1,7 +1,7 @@
 ---
 - name: Setup SpotX on hosts
   hosts: localhost
-  become: true
+  become: false
   gather_facts: true
 
   pre_tasks:
@@ -23,15 +23,11 @@
         remote: flathub
         state: present
         method: user
-      become: true
-      become_user: "{{ ansible_user_id }}"
       register: spotify_install
       changed_when: spotify_install is changed
       failed_when: false
 
     - name: Apply SpotX ad-block patch
       ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/spotx/apply_spotx.fish"
-      become: true
-      become_user: "{{ ansible_user_id }}"
       changed_when: false
       failed_when: false
