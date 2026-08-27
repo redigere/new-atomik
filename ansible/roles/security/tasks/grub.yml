@@ -7,6 +7,22 @@
     group: root
     mode: "0755"
 
+- name: Detect GPU kernel module
+  ansible.builtin.shell: |
+    set -e
+    if lsmod | grep -q '^amdgpu '; then echo "amdgpu"
+    elif lsmod | grep -q '^nvidia '; then echo "nvidia"
+    elif lsmod | grep -q '^i915 '; then echo "i915"
+    elif lsmod | grep -q '^xe '; then echo "i915"
+    else echo "none"
+    fi
+  register: gpu_module_result
+  changed_when: false
+
+- name: Set GPU module fact
+  ansible.builtin.set_fact:
+    atomik_gpu_module: "{{ gpu_module_result.stdout }}"
+
 - name: Deploy GRUB performance config
   ansible.builtin.template:
     src: grub-performance.cfg.j2
