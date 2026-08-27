@@ -1,7 +1,6 @@
 ---
 - name: Configure Fedora Atomic system
   hosts: localhost
-  become: true
   gather_facts: true
 
   pre_tasks:
@@ -42,12 +41,16 @@
 
   roles:
     - role: bootstrap
+      become: true
       tags: [bootstrap]
     - role: repos
+      become: true
       tags: [repos]
     - role: packages
+      become: true
       tags: [packages]
     - role: security
+      become: true
       tags: [security]
     - role: desktop
-      tags: [desktop, gnome, kde]
+      tags: [desktop]

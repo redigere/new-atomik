@@ -1,8 +1,9 @@
 ---
 - name: Setup Flatpak environment
   hosts: localhost
-  become: true
+  become: false
   gather_facts: true
+
 
   pre_tasks:
     - name: Detect real user
@@ -26,6 +27,8 @@
       - com.usebottles.bottles
       - eu.betterbird.Betterbird
       - com.github.wwmm.easyeffects
+    atomik_electron_flatpaks:
+      - com.spotify.Client
 
   tasks:
     - name: Skip in containers
@@ -80,4 +83,23 @@
       become_user: "{{ ansible_user_id }}"
       register: flatpak_app_install
       changed_when: flatpak_app_install is changed
+      failed_when: false
+
+    - name: Apply Electron overrides for Electron-based Flatpaks
+      ansible.builtin.shell: |
+        OVERRIDE_CMD="flatpak override --user"
+        {% for s in atomik_electron_overrides.sockets | default([]) %}
+        OVERRIDE_CMD="$OVERRIDE_CMD --socket={{ s }}"
+        {% endfor %}
+        {% for env_key, env_val in atomik_electron_overrides.env | default({}) | dict2items %}
+        OVERRIDE_CMD="$OVERRIDE_CMD --env={{ env_key }}={{ env_val }}"
+        {% endfor %}
+        $OVERRIDE_CMD {{ item }}
+      loop: "{{ atomik_electron_flatpaks }}"
+      loop_control:
+        label: "{{ item }}"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+      register: electron_override_result
+      changed_when: electron_override_result.rc == 0
       failed_when: false

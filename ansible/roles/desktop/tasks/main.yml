@@ -24,23 +24,28 @@
     group: root
     mode: "0644"
   become: true
+  ignore_errors: true
+  tags: [fonts]
+
 
 - name: Apply GNOME desktop settings
   ansible.builtin.include_tasks: gnome.yml
   when: atomik_desktop == 'gnome'
+  tags: [gnome, desktop]
 
 - name: Apply KDE desktop settings
   ansible.builtin.include_tasks: kde.yml
   when: atomik_desktop == 'kde'
+  tags: [kde, desktop]
 
 - name: Apply COSMIC desktop settings
   ansible.builtin.include_tasks: cosmic.yml
   when: atomik_desktop == 'cosmic'
+  tags: [cosmic, desktop]
+
 
 - name: Set Brave Origin as default web browser
   ansible.builtin.shell: "xdg-settings set default-web-browser brave-origin.desktop"
-  become: true
-  become_user: "{{ atomik_user }}"
   changed_when: false
   failed_when: false
-
+  tags: [desktop, cosmic, gnome, kde]

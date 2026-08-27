@@ -20,7 +20,7 @@
 - name: Enable thermald
   ansible.builtin.systemd:
     name: thermald
-    state: started
+    state: restarted
     enabled: true
 
 - name: Restart zram

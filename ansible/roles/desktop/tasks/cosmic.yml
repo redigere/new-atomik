@@ -13,7 +13,6 @@
     owner: "{{ atomik_user }}"
     group: "{{ atomik_user }}"
     mode: "0755"
-  become: true
 
 - name: Deploy COSMIC environment config
   ansible.builtin.copy:
@@ -22,12 +21,9 @@
     owner: "{{ atomik_user }}"
     group: "{{ atomik_user }}"
     mode: "0644"
-  become: true
 
 - name: Apply COSMIC desktop settings
-  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/cosmic/apply_cosmic_settings.fish"
-  become: true
-  become_user: "{{ atomik_user }}"
+  ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/cosmic/apply_cosmic_settings.fish {{ atomik_user }}"
   changed_when: false
   failed_when: false
   when: fish_check.rc == 0
@@ -39,35 +35,8 @@
     owner: "{{ atomik_user }}"
     group: "{{ atomik_user }}"
     mode: "0755"
-  become: true
 
-- name: Deploy XWayland (xwayland-satellite) user service for X11 compatibility
-  ansible.builtin.copy:
-    content: |
-      [Unit]
-      Description=XWayland via xwayland-satellite for X11 app compatibility
-      PartOf=graphical-session.target
-      After=graphical-session.target
-
-      [Service]
-      Type=simple
-      ExecStart=/usr/bin/xwayland-satellite :0
-      Restart=always
-      RestartSec=2
-
-      [Install]
-      WantedBy=graphical-session.target
-    dest: "/home/{{ atomik_user }}/.config/systemd/user/xwayland-satellite.service"
-    owner: "{{ atomik_user }}"
-    group: "{{ atomik_user }}"
-    mode: "0644"
-  become: true
-
-- name: Enable XWayland service by default
-  ansible.builtin.systemd:
-    name: xwayland-satellite
-    enabled: true
-    scope: user
-  become: true
-  become_user: "{{ atomik_user }}"
-  failed_when: false
+- name: Remove redundant xwayland-satellite user service (COSMIC has native Xwayland)
+  ansible.builtin.file:
+    path: "/home/{{ atomik_user }}/.config/systemd/user/xwayland-satellite.service"
+    state: absent

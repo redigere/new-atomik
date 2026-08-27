@@ -1,8 +1,9 @@
 ---
 - name: Setup gaming environment
   hosts: localhost
-  become: true
+  become: false
   gather_facts: true
+
 
   pre_tasks:
     - name: Detect real user
@@ -21,8 +22,10 @@
     gaming_flatpak_overrides:
       com.discordapp.Discord:
         env:
-          ELECTRON_OZONE_PLATFORM_HINT: x11
-          XDG_CURRENT_DESKTOP: pop:GNOME
+          ELECTRON_OZONE_PLATFORM_HINT: auto
+        sockets:
+          - wayland
+          - fallback-x11
         filesystems:
           - xdg-cache:create
           - xdg-config:create
@@ -64,6 +67,9 @@
     - name: Apply gaming Flatpak overrides
       ansible.builtin.shell: |
         OVERRIDE_CMD="flatpak override --user"
+        {% for s in item.value.sockets | default([]) %}
+        OVERRIDE_CMD="$OVERRIDE_CMD --socket={{ s }}"
+        {% endfor %}
         {% for env_key, env_val in item.value.env | default({}) | dict2items %}
         OVERRIDE_CMD="$OVERRIDE_CMD --env={{ env_key }}={{ env_val }}"
         {% endfor %}
