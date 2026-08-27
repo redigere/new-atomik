@@ -20,7 +20,7 @@
     business_flatpak_overrides:
       com.slack.Slack:
         env:
-          ELECTRON_OZONE_PLATFORM_HINT: auto
+          ELECTRON_OZONE_PLATFORM_HINT: x11
           XDG_CURRENT_DESKTOP: pop:GNOME
         filesystems:
           - xdg-cache:create
