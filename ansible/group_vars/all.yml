@@ -314,6 +314,7 @@ atomik_variant_remove:
     - adwaita-qt6
     # ark (KDE archiver) crashes under COSMIC; file-roller is used instead (see atomik_variant_install)
     - ark
+    - ark-libs
     - fedora-chromium-config
     - kio-extras
     - kio-fuse
@@ -491,6 +492,7 @@ atomik_rpm_install:
   - fontawesome-fonts-all
   - perl
   - tuned-utils
+  - micro
 
 atomik_rpm_remove:
   - firefox
@@ -512,6 +514,9 @@ atomik_rpm_remove:
   - libreoffice-gtk3
   - libsane-hpaio
   - host-spawn
+  - default-editor
+  - nano-default-editor
+  - nano
 
 atomik_repositories:
   brave-browser:
@@ -662,14 +667,14 @@ atomik_permissions:
 
 atomik_oomd_config: |
   [OOM]
-  SwapUsedLimit=10%
-  DefaultMemoryPressureLimit=5%
-  DefaultMemoryPressureDurationSec=500ms
+  SwapUsedLimit=35%
+  DefaultMemoryPressureLimit=20%
+  DefaultMemoryPressureDurationSec=1500ms
 
 atomik_oomd_user_slice: |
   [Service]
   ManagedOOMMemoryPressure=kill
-  ManagedOOMMemoryPressureLimit=10%
+  ManagedOOMMemoryPressureLimit=30%
   ManagedOOMSwap=kill
 
 atomik_oomd_protected_config: |
@@ -681,9 +686,9 @@ atomik_oomd_protected_config: |
 
 atomik_cgroup_user_slice: |
   [Slice]
-  MemoryHigh=75%
-  MemoryMax=90%
-  TasksMax=4096
+  MemoryHigh=85%
+  MemoryMax=95%
+  TasksMax=8192
 
 atomik_cgroup_protected_default: |
   [Service]
@@ -727,6 +732,8 @@ atomik_oomd_protected_services:
     - cosmic-comp
     - cosmic-session
     - cosmic-panel
+    - cosmic-greeter
+    - cosmic-osd
     - pipewire
     - pipewire-pulse
     - wireplumber
@@ -738,6 +745,8 @@ atomik_desktop_scheduler_services:
     - kwin
   cosmic-atomic:
     - cosmic-comp
+    - cosmic-session
+    - cosmic-panel
 
 atomik_zram_config: |
   [zram0]
@@ -1191,6 +1200,7 @@ atomik_critical_services:
     - bluetooth
     - sshd
     - cosmic-greeter
+    - cosmic-osd
 
 atomik_masked_services:
   - abrtd
@@ -1215,6 +1225,37 @@ atomik_alsa_power_save: |
   options snd_hda_intel power_save=0
   options snd_hda_intel power_save_controller=N
 
+atomik_logind_conf: |
+  [Login]
+  IdleAction=ignore
+  IdleActionSec=infinity
+  HandleSuspendKey=ignore
+  HandleHibernateKey=ignore
+  HandleLidSwitch=ignore
+  HandleLidSwitchExternalPower=ignore
+  HandleLidSwitchDocked=ignore
+  PowerKeyIgnoreInhibited=yes
+  SuspendKeyIgnoreInhibited=yes
+  HibernateKeyIgnoreInhibited=yes
+
+atomik_dpms_udev_rules: |
+  ACTION=="add", SUBSYSTEM=="drm", KERNEL=="card*", RUN+="/usr/bin/xset -dpms 2>/dev/null || true"
+
+atomik_wifi_restart_service: |
+  [Unit]
+  Description=Restart NetworkManager if WiFi not connected
+  After=network-online.target
+  Wants=network-online.target
+  ConditionPathExists=!/run/atomik-wifi-checked
+
+  [Service]
+  Type=oneshot
+  ExecStart=/bin/bash -c 'sleep 5 && nmcli -t -f TYPE,STATE connection show | grep -q "wifi:activated" || systemctl restart NetworkManager'
+  RemainAfterExit=yes
+
+  [Install]
+  WantedBy=multi-user.target
+
 atomik_kde_environment: |
   KWIN_WAYLAND_NO_SUSPEND=1
   KWIN_WAYLAND_SERVER_LOGGING=false
@@ -1231,3 +1272,7 @@ atomik_cosmic_environment: |
   ELECTRON_OZONE_PLATFORM_HINT=auto
   MOZ_ENABLE_WAYLAND=1
   DISPLAY=:0
+  COSMIC_RENDER_USE_GLES=1
+  __GL_SYNC_TO_VBLANK=0
+  WLR_NO_HARDWARE_CURSORS=0
+  WLR_RENDERER=vulkan

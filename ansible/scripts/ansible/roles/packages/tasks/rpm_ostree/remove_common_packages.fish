@@ -17,6 +17,7 @@ end
 if rpm-ostree override remove $TO_REMOVE
   echo "removed: $TO_REMOVE"
 else
+  echo "Failed to remove packages as a group, trying individually"
   for p in $TO_REMOVE
     if rpm-ostree override remove $p 2>/dev/null
       echo "removed: $p"
