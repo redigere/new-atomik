@@ -18,4 +18,5 @@ COPY extra/ /opt/atomik/extra/
 COPY docs/ /opt/atomik/docs/
 COPY tests/ /opt/atomik/tests/
 
+RUN mkdir -p /run/media
 RUN sed -i 's#^SHELL=.*#SHELL=/usr/bin/fish#' /etc/default/useradd
