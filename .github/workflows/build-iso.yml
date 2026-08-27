@@ -34,6 +34,9 @@ jobs:
           test -f iso/Containerfile
           echo "ISO build config present"
 
+      - name: Ensure /run/media exists
+        run: sudo mkdir -p /run/media
+
       - name: Build base image
         run: podman build --network=host -t localhost/atomik-kinoite:44 -f iso/Containerfile .
 
