@@ -1204,7 +1204,6 @@ atomik_masked_services:
   - geoclue
   - gssproxy
   - ModemManager
-  - NetworkManager-wait-online
   - packagekit
   - packagekit-offline-update
   - pmie
