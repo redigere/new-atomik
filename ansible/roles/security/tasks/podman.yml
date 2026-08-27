@@ -87,6 +87,12 @@
     group: "{{ atomik_user }}"
     mode: "0755"
 
+- name: Ensure /run/media exists for removable media mounts
+  ansible.builtin.file:
+    path: /run/media
+    state: directory
+    mode: "0755"
+
 - name: Verify pasta fallback works
   ansible.builtin.command: >
     podman run --rm --network=slirp4netns alpine:latest echo ok
