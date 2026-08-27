@@ -47,3 +47,8 @@
 
 - name: Rebuild grub
   ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/security/handlers/rebuild_grub.fish"
+
+- name: Restart systemd-logind
+  ansible.builtin.systemd:
+    name: systemd-logind
+    state: restarted

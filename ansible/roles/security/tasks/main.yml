@@ -62,3 +62,12 @@
 
 - name: Configure podman networking (pasta → slirp4netns)
   ansible.builtin.include_tasks: podman.yml
+
+- name: Apply logind idle inhibit
+  ansible.builtin.include_tasks: logind.yml
+
+- name: Disable DPMS screen blanking
+  ansible.builtin.include_tasks: dpms.yml
+
+- name: Deploy WiFi restart service
+  ansible.builtin.include_tasks: wifi_restart.yml
