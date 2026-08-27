@@ -2,11 +2,11 @@
 include=desktop
 
 [cpu]
-governor=performance
-energy_performance_preference=performance
+governor=balanced_performance
+energy_performance_preference=balance_performance
 boost=1
 max_perf_pct=100
-min_perf_pct=100
+min_perf_pct=40
 force_latency=1
 
 [kernel]
@@ -14,8 +14,8 @@ nmi_watchdog=0
 sched_autogroup=0
 
 [vm]
-transparent_hugepages=always
-transparent_hugepages_defrag=never
+transparent_hugepages=madvise
+transparent_hugepages_defrag=madvise
 
 [audio]
 timeout=0
