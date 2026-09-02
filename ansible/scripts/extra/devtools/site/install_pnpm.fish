@@ -1,6 +1,5 @@
 #!/usr/bin/env fish
-set -gx NVM_DIR "$HOME/.nvm"
-if test -s "$NVM_DIR/nvm.sh"
-  source "$NVM_DIR/nvm.sh"
+set -gx PNPM_HOME "$HOME/.local/share/pnpm"
+if not test -d "$PNPM_HOME"
+  curl -fsSL https://get.pnpm.io/install.sh | sh -
 end
-npm install -g pnpm
