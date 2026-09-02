@@ -13,6 +13,8 @@
       - fontawesome-fonts-all
       - tuned
       - tuned-utils
+      - ujust
+      - ripgrep
 
   tasks:
     - name: Skip in containers
@@ -29,6 +31,11 @@
     - name: Save toolbox container list
       ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/extra/packages/site/save_toolbox_list.fish"
       register: toolbox_before
+      changed_when: false
+      failed_when: false
+
+    - name: Refresh rpm-ostree metadata
+      ansible.builtin.shell: rpm-ostree refresh-md --force
       changed_when: false
       failed_when: false
 

@@ -4,8 +4,6 @@ if status is-interactive
     alias ll="ls -l"
     alias la="ls -la"
     alias update="rpm-ostree upgrade"
-    alias cleanup="rpm-ostree cleanup -m"
+    alias cleanup="rpm-ostree cleanup -mp --base --rollback"
     alias rebuild="rpm-ostree initramfs --enable && rpm-ostree upgrade"
-    alias ide="idea"
-    alias astudio="android-studio"
 end
