@@ -23,7 +23,7 @@ help:
 	@echo "  make apply-only-desktop   Apply desktop only"
 	@echo "  make apply-extra-gnome    Apply GNOME settings"
 	@echo "  make apply-extra-codium   Install and configure debloated VSCodium"
-	@echo "  make apply-extra-devtools Install dev tools (nvm, pnpm, rustup, sdkman, opencode)"
+	@echo "  make apply-extra-devtools Install dev tools (pnpm, rustup, opencode)"
 	@echo "  make apply-extra-flatpak  Install Flatpak runtime and remotes"
 	@echo "  make apply-extra-gaming   Install gaming Flatpaks (Discord, Heroic)"
 	@echo "  make apply-extra-business Install business Flatpaks (Slack)"
