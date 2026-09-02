@@ -21,7 +21,9 @@
     business_flatpak_overrides:
       com.slack.Slack:
         env:
-          ELECTRON_OZONE_PLATFORM_HINT: auto
+          ELECTRON_OZONE_PLATFORM_HINT: x11
+        sockets:
+          - x11
         filesystems:
           - xdg-cache:create
           - xdg-config:create

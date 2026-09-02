@@ -22,16 +22,16 @@
     gaming_flatpak_overrides:
       com.discordapp.Discord:
         env:
-          ELECTRON_OZONE_PLATFORM_HINT: auto
+          ELECTRON_OZONE_PLATFORM_HINT: x11
         sockets:
-          - wayland
-          - fallback-x11
+          - x11
         filesystems:
           - xdg-cache:create
           - xdg-config:create
       com.heroicgameslauncher.hgl:
         env:
           DXVK_HUD: 0
+          OZONE_PLATFORM_HINT: x11
         filesystems:
           - home:create
           - /run/media:create

@@ -36,7 +36,11 @@
     group: "{{ atomik_user }}"
     mode: "0755"
 
-- name: Remove redundant xwayland-satellite user service (COSMIC has native Xwayland)
-  ansible.builtin.file:
-    path: "/home/{{ atomik_user }}/.config/systemd/user/xwayland-satellite.service"
-    state: absent
+- name: Enable xwayland-satellite so X11/XWayland apps have a display (COSMIC has no standalone X11 server)
+  ansible.builtin.systemd_service:
+    name: xwayland-satellite.service
+    scope: user
+    enabled: true
+    state: started
+  become: true
+  become_user: "{{ atomik_user }}"
