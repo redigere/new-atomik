@@ -23,12 +23,14 @@
       - com.spotify.Client
       - org.kde.Kile
       - org.videolan.VLC
+      - com.discordapp.Discord
 
       - com.usebottles.bottles
       - eu.betterbird.Betterbird
       - com.github.wwmm.easyeffects
     atomik_electron_flatpaks:
       - com.spotify.Client
+      - com.discordapp.Discord
 
   tasks:
     - name: Skip in containers
@@ -85,6 +87,18 @@
       changed_when: flatpak_app_install is changed
       failed_when: false
 
+    - name: Reset Electron Flatpak overrides and clean user data
+      ansible.builtin.shell: |
+        flatpak override --user --reset {{ item }}
+        rm -rf "$HOME/.var/app/{{ item }}"
+      loop: "{{ atomik_electron_flatpaks }}"
+      loop_control:
+        label: "{{ item }}"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+      register: electron_clean_result
+      changed_when: electron_clean_result.rc == 0
+
     - name: Apply Electron overrides for Electron-based Flatpaks
       ansible.builtin.shell: |
         OVERRIDE_CMD="flatpak override --user"
@@ -103,3 +117,13 @@
       register: electron_override_result
       changed_when: electron_override_result.rc == 0
       failed_when: false
+
+    - name: Clean Discord cache
+      ansible.builtin.shell: |
+        flatpak kill com.discordapp.Discord
+        rm -rf ~/.var/app/com.discordapp.Discord/config/discord/GPUCache ~/.var/app/com.discordapp.Discord/config/discord/Cache
+        flatpak run com.discordapp.Discord
+      become: true
+      become_user: "{{ ansible_user_id }}"
+      register: discord_cache_result
+      changed_when: discord_cache_result.rc == 0
