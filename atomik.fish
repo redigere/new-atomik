@@ -10,9 +10,23 @@ if not test -x "$ansible_bin"
     exit 1
 end
 
+function in_flatpak
+    test -f /.flatpak-info; or test -n "$FLATPAK_ID"; or test -f /run/.toolboxenv
+end
+
+function host_cmd
+    if in_flatpak
+        flatpak-spawn --host $argv
+    else
+        $argv
+    end
+end
+
 function run_root -V script_dir -V ANSIBLE_CONFIG
     if test (id -u) -eq 0
         $argv
+    else if in_flatpak
+        flatpak-spawn --host pkexec env ANSIBLE_CONFIG="$ANSIBLE_CONFIG" $argv
     else if command -v pkexec >/dev/null 2>&1; and test -n "$DISPLAY" -o -n "$WAYLAND_DISPLAY"
         pkexec env ANSIBLE_CONFIG="$ANSIBLE_CONFIG" $argv
     else
@@ -20,8 +34,12 @@ function run_root -V script_dir -V ANSIBLE_CONFIG
     end
 end
 
-function run_user
-    $argv
+function run_user -V script_dir
+    if in_flatpak
+        flatpak-spawn --host $argv
+    else
+        $argv
+    end
 end
 
 function show_usage
@@ -43,7 +61,7 @@ function show_usage
     echo "  flatpak          Installa e configura i Flatpak base"
     echo "  gaming           Installa i Flatpak da gaming (Discord, Heroic) con Wayland"
     echo "  business         Installa i Flatpak da lavoro (Slack) con Wayland"
-    echo "  devtools         Installa i tool di sviluppo (nvm, rustup, pnpm, sdkman)"
+    echo "  devtools         Installa i tool di sviluppo (rustup, pnpm)"
     echo "  codium           Installa e ottimizza VSCodium"
     echo "  spotx            Applica blocco annunci SpotX a Spotify"
     echo ""

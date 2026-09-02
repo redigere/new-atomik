@@ -17,10 +17,24 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
+in_flatpak() {
+    [[ -f /.flatpak-info ]] || [[ -n "${FLATPAK_ID:-}" ]] || [[ -f /run/.toolboxenv ]]
+}
+
+host_cmd() {
+    if in_flatpak; then
+        flatpak-spawn --host "$@"
+    else
+        "$@"
+    fi
+}
+
 run_root() {
     local cmd=("$@")
     if [[ $EUID -eq 0 ]]; then
         "${cmd[@]}"
+    elif in_flatpak; then
+        flatpak-spawn --host pkexec env ANSIBLE_CONFIG="$ANSIBLE_CONFIG" "${cmd[@]}"
     elif command -v pkexec >/dev/null 2>&1 && [[ -n "$DISPLAY" || -n "$WAYLAND_DISPLAY" ]]; then
         pkexec env ANSIBLE_CONFIG="$ANSIBLE_CONFIG" "${cmd[@]}"
     else
@@ -30,7 +44,11 @@ run_root() {
 
 run_user() {
     local cmd=("$@")
-    "${cmd[@]}"
+    if in_flatpak; then
+        flatpak-spawn --host "${cmd[@]}"
+    else
+        "${cmd[@]}"
+    fi
 }
 
 usage() {
@@ -52,7 +70,7 @@ usage() {
     echo "  flatpak          Installa e configura i Flatpak base"
     echo "  gaming           Installa i Flatpak da gaming (Discord, Heroic) con Wayland"
     echo "  business         Installa i Flatpak da lavoro (Slack) con Wayland"
-    echo "  devtools         Installa i tool di sviluppo (nvm, rustup, pnpm, sdkman)"
+    echo "  devtools         Installa i tool di sviluppo (rustup, pnpm)"
     echo "  codium           Installa e ottimizza VSCodium"
     echo "  spotx            Applica blocco annunci SpotX a Spotify"
     echo ""
