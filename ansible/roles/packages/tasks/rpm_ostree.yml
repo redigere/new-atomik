@@ -54,6 +54,12 @@
   failed_when: false
   when: pending_changes.rc == 0
 
+- name: Rebuild font cache
+  ansible.builtin.shell: fc-cache -f
+  become: true
+  changed_when: false
+  failed_when: false
+
 - name: Verify toolbox containers preserved
   ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/packages/tasks/rpm_ostree/verify_toolbox.fish"
   environment:

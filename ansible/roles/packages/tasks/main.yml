@@ -11,5 +11,11 @@
     - name: End play
       ansible.builtin.meta: end_play
 
+- name: Refresh rpm-ostree metadata
+  ansible.builtin.shell: rpm-ostree refresh-md --force
+  become: true
+  changed_when: false
+  failed_when: false
+
 - name: Manage RPM-OSTree packages
   ansible.builtin.include_tasks: rpm_ostree.yml
