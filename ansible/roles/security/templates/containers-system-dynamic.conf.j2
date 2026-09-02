@@ -1,5 +1,16 @@
+{# Container pids_limit: scale with RAM #}
+{% set ram_mb = ansible_facts['memtotal_mb'] | int %}
+
+{% if ram_mb <= 4096 %}
+{% set pids_limit = 512 %}
+{% elif ram_mb <= 8192 %}
+{% set pids_limit = 1024 %}
+{% else %}
+{% set pids_limit = 2048 %}
+{% endif %}
+
 [containers]
-pids_limit = 2048
+pids_limit = {{ pids_limit }}
 log_driver = "journald"
 volume_path = "/var/lib/containers/storage/volumes"
 env = ["CONTAINERS_STORAGE_CONF=/etc/containers/storage-nested.conf"]

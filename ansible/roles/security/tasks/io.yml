@@ -1,8 +1,8 @@
 ---
 
 - name: Deploy udev IO rules
-  ansible.builtin.copy:
-    content: "{{ atomik_io_udev_rules }}"
+  ansible.builtin.template:
+    src: io_udev_rules.conf.j2
     dest: /etc/udev/rules.d/99-atomik-io.rules
     owner: root
     group: root
@@ -10,8 +10,8 @@
   notify: Reload udev
 
 - name: Deploy THP config
-  ansible.builtin.copy:
-    content: "{{ atomik_thp_tmpfiles }}"
+  ansible.builtin.template:
+    src: thp.conf.j2
     dest: /etc/tmpfiles.d/99-atomik-thp.conf
     owner: root
     group: root
