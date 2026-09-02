@@ -488,7 +488,6 @@ atomik_rpm_install:
   - brave-origin
   - fish
   - fontawesome-fonts-all
-  - google-noto-emoji-color-fonts
   - perl
   - tuned-utils
   - micro
