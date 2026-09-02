@@ -69,8 +69,4 @@ if test (id -u) -eq 0 -a "$target_user" != "root"
     chown -R "$target_user:$target_user" "$target_home/.config/cosmic" 2>/dev/null
 end
 
-# Cleanup conflicting legacy services
-rm -f $target_home/.config/systemd/user/xwayland-satellite.service 2>/dev/null
-
-# Reload cosmic-idle with new settings
 killall -u "$target_user" cosmic-idle 2>/dev/null
