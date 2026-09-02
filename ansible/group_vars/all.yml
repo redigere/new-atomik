@@ -9,7 +9,6 @@ atomik_variant_install:
   kinoite: []
   cosmic-atomic:
     - file-roller
-    - xwayland-satellite
 
 atomik_variant_remove:
   silverblue:
@@ -312,7 +311,6 @@ atomik_variant_remove:
   cosmic-atomic:
     - adwaita-qt5
     - adwaita-qt6
-    # ark (KDE archiver) crashes under COSMIC; file-roller is used instead (see atomik_variant_install)
     - ark
     - ark-libs
     - fedora-chromium-config
@@ -490,9 +488,11 @@ atomik_rpm_install:
   - brave-origin
   - fish
   - fontawesome-fonts-all
+  - google-noto-emoji-color-fonts
   - perl
   - tuned-utils
   - micro
+  - ripgrep
 
 atomik_rpm_remove:
   - firefox
@@ -546,8 +546,6 @@ atomik_ssh_config: |
 atomik_sysctl:
   fs:
     file-max: 9223372036854775807
-    inotify:
-      max_user_watches: 524288
     protected_fifos: 2
     protected_hardlinks: 1
     protected_regular: 2
@@ -559,17 +557,10 @@ atomik_sysctl:
     kptr_restrict: 2
     numa_balancing: 0
     panic: 10
-    pid_max: 4194304
     printk: "3 3 3 3"
     sched_autogroup_enabled: 0
-    perf_cpu_time_max_percent: 1
     perf_event_paranoid: -1
-    sched_latency_ns: 6000000
-    sched_migration_cost_ns: 500000
-    sched_min_granularity_ns: 3000000
-    sched_wakeup_granularity_ns: 4000000
     sysrq: 0
-    threads-max: 1048576
     timer_migration: 0
     unprivileged_bpf_disabled: 1
   net:
@@ -596,16 +587,8 @@ atomik_sysctl:
       tcp_sack: 1
       tcp_mtu_probing: 1
       tcp_slow_start_after_idle: 0
-      tcp_notsent_lowat: 131072
-      udp_mem: "2097152 4194304 8388608"
     core:
       default_qdisc: fq
-      rmem_max: 16777216
-      wmem_max: 16777216
-      rmem_default: 262144
-      wmem_default: 262144
-      netdev_max_backlog: 5000
-      optmem_max: 25165824
     ipv6:
       conf:
         all:
@@ -625,9 +608,7 @@ atomik_sysctl:
     dirty_writeback_centisecs: 100
     dirtytime_expire_seconds: 200
     extfrag_threshold: 100
-    max_map_count: 2147483642
     overcommit_memory: 1
-    overcommit_ratio: 50
     page_cluster: 0
     page_lock_unfairness: 1
     panic_on_oom: 0
@@ -664,43 +645,6 @@ atomik_permissions:
   /etc/passwd: "0644"
   /etc/shadow: "0000"
   /root: "0700"
-
-atomik_oomd_config: |
-  [OOM]
-  SwapUsedLimit=35%
-  DefaultMemoryPressureLimit=20%
-  DefaultMemoryPressureDurationSec=1500ms
-
-atomik_oomd_user_slice: |
-  [Service]
-  ManagedOOMMemoryPressure=kill
-  ManagedOOMMemoryPressureLimit=30%
-  ManagedOOMSwap=kill
-
-atomik_oomd_protected_config: |
-  [Service]
-  ManagedOOMMemoryPressure=kill
-  ManagedOOMMemoryPressureLimit=50%
-  ManagedOOMSwap=kill
-  OOMScoreAdjust=-1000
-
-atomik_cgroup_user_slice: |
-  [Slice]
-  MemoryHigh=85%
-  MemoryMax=95%
-  TasksMax=8192
-
-atomik_cgroup_protected_default: |
-  [Service]
-  MemoryHigh=infinity
-  MemoryMax=infinity
-  TasksMax=8192
-
-atomik_cgroup_app_slice: |
-  [Slice]
-  MemoryHigh=50%
-  MemoryMax=75%
-  TasksMax=2048
 
 atomik_cgroup_cpu_weight_compositor: |
   [Service]
@@ -764,68 +708,6 @@ atomik_zram_config: |
 
 atomik_zram_udev_rules: |
   ACTION=="add", KERNEL=="zram[0-9]*", ATTR{comp_algorithm}="zstd lzo-rle lz4", ATTR{max_comp_streams}="$(nproc)", ATTR{writeback_limit}="0"
-
-atomik_swapfile_service: |
-  [Unit]
-  Description=Atomik Swapfile Creator
-  ConditionPathExists=!/var/swapfile
-
-  [Service]
-  Type=oneshot
-  ExecStart=/sbin/btrfs filesystem mkswapfile --size 4G /var/swapfile
-  RemainAfterExit=yes
-
-  [Install]
-  WantedBy=multi-user.target
-
-atomik_swapfile_unit: |
-  [Unit]
-  Description=Atomik Disk Swapfile
-  Requires=atomik-swapfile.service
-  After=atomik-swapfile.service
-
-  [Swap]
-  What=/var/swapfile
-  Priority=10
-
-  [Install]
-  WantedBy=swap.target
-
-atomik_io_udev_rules: |
-  ACTION=="add|change", SUBSYSTEM=="block", KERNEL=="nvme*n*", ATTR{queue/scheduler}="none", ATTR{queue/nr_requests}="64", ATTR{queue/read_ahead_kb}="256", ATTR{queue/nomerges}="2", ATTR{queue/rq_affinity}="2", ATTR{queue/iostats}="0", ATTR{queue/max_sectors_kb}="128"
-  ACTION=="add|change", SUBSYSTEM=="block", KERNEL=="sd*[!0-9]|vd*[!0-9]|mmcblk*[!0-9]", ATTR{queue/rotational}=="0", ATTR{queue/scheduler}="none", ATTR{queue/nr_requests}="64", ATTR{queue/read_ahead_kb}="256", ATTR{queue/nomerges}="2", ATTR{queue/rq_affinity}="2", ATTR{queue/max_sectors_kb}="128"
-  ACTION=="add|change", SUBSYSTEM=="block", KERNEL=="sd*[!0-9]", ATTR{queue/rotational}=="1", ATTR{queue/scheduler}="bfq", ATTR{queue/nr_requests}="64", ATTR{queue/read_ahead_kb}="256", ATTR{queue/nomerges}="2", ATTR{queue/rq_affinity}="2"
-
-
-atomik_thp_tmpfiles: |
-  w /sys/kernel/mm/transparent_hugepage/enabled - - - - always
-  w /sys/kernel/mm/transparent_hugepage/defrag - - - - never
-  w /sys/kernel/mm/transparent_hugepage/khugepaged/defrag - - - - 0
-  w /sys/kernel/mm/transparent_hugepage/khugepaged/alloc_sleep_millisecs - - - - 10000
-  w /sys/kernel/mm/transparent_hugepage/khugepaged/scan_sleep_millisecs - - - - 10000
-  w /sys/kernel/mm/transparent_hugepage/khugepaged/max_ptes_none - - - - 512
-  w /sys/kernel/mm/transparent_hugepage/shmem_enabled - - - - never
-  w /sys/kernel/mm/transparent_hugepage/use_zero_page - - - - 0
-
-atomik_desktop_scheduler_config: |
-  [Service]
-  OOMScoreAdjust=-1000
-  IOSchedulingClass=realtime
-  IOSchedulingPriority=0
-  CPUSchedulingPolicy=rr
-  CPUSchedulingPriority=4
-  Nice=-15
-  MemoryHigh=infinity
-  MemoryMax=infinity
-  TasksMax=16384
-
-atomik_desktop_scheduler_config_rt: |
-  [Service]
-  CPUAccounting=yes
-  MemoryAccounting=yes
-  IOAccounting=yes
-  TasksAccounting=yes
-  IPAccounting=yes
 
 atomik_default_shell: /usr/bin/fish
 atomik_gnome_dconf:
@@ -905,10 +787,6 @@ atomik_kde_settings:
       group: Compositing
       key: Backend
       value: OpenGL
-    - file: kwinrc
-      group: Compositing
-      key: MaxFps
-      value: "120"
     - file: kwinrc
       group: Compositing
       key: VSync
@@ -1266,16 +1144,16 @@ atomik_gnome_environment: |
   __GL_MaxFramesAllowed=1
 
 atomik_cosmic_environment: |
-  QT_QPA_PLATFORM=wayland;xcb
-  ELECTRON_OZONE_PLATFORM_HINT=auto
-  MOZ_ENABLE_WAYLAND=1
-  GDK_BACKEND=wayland,x11
-  SDL_VIDEODRIVER=wayland
-  CLUTTER_BACKEND=wayland
+  QT_QPA_PLATFORM=xcb
+  ELECTRON_OZONE_PLATFORM_HINT=x11
+  MOZ_ENABLE_WAYLAND=0
+  GDK_BACKEND=x11
+  SDL_VIDEODRIVER=x11
+  CLUTTER_BACKEND=x11
 
 atomik_electron_overrides:
   env:
-    ELECTRON_OZONE_PLATFORM_HINT: auto
+    ELECTRON_OZONE_PLATFORM_HINT: x11
+    CHROME_DISABLE_SANDBOX: "1"
   sockets:
-    - wayland
-    - fallback-x11
+    - x11
