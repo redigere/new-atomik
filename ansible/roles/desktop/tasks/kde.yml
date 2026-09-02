@@ -10,6 +10,25 @@
   ansible.builtin.set_fact:
     kde_config_tool: "{{ kwriteconfig_result.stdout }}"
 
+- name: Detect display refresh rate
+  ansible.builtin.shell: |
+    # Try wlr-randr (Wayland), then xrandr (X11)
+    if command -v wlr-randr >/dev/null 2>&1; then
+      hz=$(wlr-randr 2>/dev/null | grep -oP '\d+\.\d+ Hz' | head -1 | grep -oP '\d+' | head -1)
+    elif command -v xrandr >/dev/null 2>&1; then
+      hz=$(xrandr 2>/dev/null | grep ' connected' | grep -oP '\d+\.\d+\*' | head -1 | grep -oP '\d+' | head -1)
+    fi
+    echo "${hz:-60}"
+  become: true
+  become_user: "{{ atomik_user }}"
+  register: display_hz_result
+  changed_when: false
+  failed_when: false
+
+- name: Set display refresh rate fact
+  ansible.builtin.set_fact:
+    atomik_display_hz: "{{ [display_hz_result.stdout | int, 60] | max }}"
+
 - name: Apply KDE settings
   ansible.builtin.shell: "fish {{ inventory_dir }}/../../scripts/ansible/roles/desktop/tasks/kde/apply_kde_setting.fish {{ item.file }} {{ item.group }} {{ item.key }} {{ item.value | default('') }}"
   environment:
@@ -24,7 +43,10 @@
        atomik_kde_settings.telemetry | default([]) +
        atomik_kde_settings.wallet | default([]) +
        atomik_kde_settings.restrictions | default([]) +
-       atomik_kde_settings.compositor | default([]) +
+       [{'file': 'kwinrc', 'group': 'Compositing', 'key': 'Backend', 'value': 'OpenGL'},
+        {'file': 'kwinrc', 'group': 'Compositing', 'key': 'MaxFps', 'value': atomik_display_hz | string},
+        {'file': 'kwinrc', 'group': 'Compositing', 'key': 'VSync', 'value': 'auto'},
+        {'file': 'kwinrc', 'group': 'Compositing', 'key': 'Enabled', 'value': 'true'}] +
        atomik_kde_settings.notifications | default([]) +
        atomik_kde_settings.effects | default([]) +
        atomik_kde_settings.kded | default([]) +
