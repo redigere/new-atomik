@@ -1,5 +1,16 @@
 ---
 
+- name: Ensure fontconfig directory exists
+  ansible.builtin.file:
+    path: "~/.config/fontconfig"
+    state: directory
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
+    mode: "0755"
+  become: true
+  become_user: "{{ atomik_user }}"
+  tags: [fonts]
+
 - name: Deploy emoji font fallback configuration
   ansible.builtin.copy:
     content: |
@@ -19,17 +30,19 @@
           <edit name="family" mode="append" binding="weak"><string>Noto Color Emoji</string></edit>
         </match>
       </fontconfig>
-    dest: /etc/fonts/conf.d/99-atomik-emoji.conf
-    owner: root
-    group: root
+    dest: "~/.config/fontconfig/99-atomik-emoji.conf"
+    owner: "{{ atomik_user }}"
+    group: "{{ atomik_user }}"
     mode: "0644"
   become: true
+  become_user: "{{ atomik_user }}"
   ignore_errors: true
   tags: [fonts]
 
 - name: Rebuild font cache
   ansible.builtin.shell: fc-cache -f
   become: true
+  become_user: "{{ atomik_user }}"
   changed_when: false
   failed_when: false
   tags: [fonts]
