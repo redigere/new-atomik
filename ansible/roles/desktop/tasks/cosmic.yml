@@ -108,16 +108,16 @@
   become_user: "{{ atomik_user }}"
   failed_when: false
 
-- name: Ensure COSMIC comp has realtime priority
+- name: Ensure COSMIC comp has high priority
   ansible.builtin.copy:
     content: |
       [Unit]
-      Description=COSMIC compositor realtime boost
+      Description=COSMIC compositor priority boost
       After=cosmic-comp.service
 
       [Service]
       Type=oneshot
-      ExecStart=/bin/bash -c 'for pid in $(pgrep -x cosmic-comp); do chrt -f -p 50 $pid 2>/dev/null; done'
+      ExecStart=/bin/bash -c 'sleep 2 && for pid in $(pgrep -x cosmic-comp); do renice -n -10 -p $pid 2>/dev/null; done'
 
       [Install]
       WantedBy=cosmic-session.target
@@ -134,3 +134,4 @@
     state: started
   become: true
   become_user: "{{ atomik_user }}"
+  failed_when: false
