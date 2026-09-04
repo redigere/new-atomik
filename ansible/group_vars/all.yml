@@ -488,6 +488,7 @@ atomik_rpm_install:
   - brave-origin
   - fish
   - fontawesome-fonts-all
+  - kbd-consolefonts
   - perl
   - tuned-utils
   - micro
@@ -545,6 +546,9 @@ atomik_ssh_config: |
 atomik_sysctl:
   fs:
     file-max: 9223372036854775807
+    inotify:
+      max_user_instances: 1024
+      max_user_watches: 2097152
     protected_fifos: 2
     protected_hardlinks: 1
     protected_regular: 2
@@ -644,6 +648,8 @@ atomik_permissions:
   /etc/passwd: "0644"
   /etc/shadow: "0000"
   /root: "0700"
+
+atomik_vconsole_font: "lat2-16"
 
 atomik_cgroup_cpu_weight_compositor: |
   [Service]
@@ -1138,21 +1144,36 @@ atomik_kde_environment: |
 atomik_gnome_environment: |
   MUTTER_DEBUG_DISABLE_VBLANK=1
   MUTTER_DEBUG_FORCE_KMS_MODE=simple
-  CLUTTER_BACKEND=x11
+  CLUTTER_BACKEND=wayland
   CLUTTER_SHOW_FPS=0
   __GL_MaxFramesAllowed=1
+  ELECTRON_OZONE_PLATFORM_HINT=x11
+  ELECTRON_OZONE_PLATFORM=x11
+  OZONE_PLATFORM_HINT=x11
+  GDK_BACKEND=wayland,x11
+  QT_QPA_PLATFORM=wayland,xcb
+  MOZ_ENABLE_WAYLAND=1
+  SDL_VIDEODRIVER=wayland,x11
 
 atomik_cosmic_environment: |
-  QT_QPA_PLATFORM=xcb
+  DISPLAY=:0
   ELECTRON_OZONE_PLATFORM_HINT=x11
-  MOZ_ENABLE_WAYLAND=0
-  GDK_BACKEND=x11
-  SDL_VIDEODRIVER=x11
-  CLUTTER_BACKEND=x11
+  ELECTRON_OZONE_PLATFORM=x11
+  OZONE_PLATFORM_HINT=x11
+  GDK_BACKEND=wayland,x11
+  QT_QPA_PLATFORM=wayland,xcb
+  QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+  MOZ_ENABLE_WAYLAND=1
+  SDL_VIDEODRIVER=wayland,x11
+  CLUTTER_BACKEND=wayland
+  GBM_BACKEND=wayland
+  WLR_NO_HARDWARE_CURSORS=1
+  WLR_RENDERER_VULKAN=0
+  LIBGL_ALWAYS_SOFTWARE=0
+  __GL_SYNC_TO_VBLANK=1
+  __GL_SYNC_DISPLAY=1
+  __GLX_VENDOR_LIBRARY_NAME=mesa
+  MESA_GL_VERSION_OVERRIDE=4.6
+  MESA_GLSL_VERSION_OVERRIDE=460
+  VDPAU_DRIVER=vaapi
 
-atomik_electron_overrides:
-  env:
-    ELECTRON_OZONE_PLATFORM_HINT: x11
-    CHROME_DISABLE_SANDBOX: "1"
-  sockets:
-    - x11

@@ -24,7 +24,10 @@
         env:
           ELECTRON_OZONE_PLATFORM_HINT: x11
         sockets:
+          - wayland
           - x11
+        nosockets:
+          - fallback-x11
         filesystems:
           - xdg-cache:create
           - xdg-config:create
@@ -64,14 +67,28 @@
       changed_when: flatpak_install is changed
       failed_when: false
 
+    - name: Reset gaming Flatpak overrides
+      ansible.builtin.shell: "flatpak override --user --reset {{ item }}"
+      loop: "{{ gaming_flatpaks }}"
+      loop_control:
+        label: "{{ item }}"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+      register: gaming_reset_result
+      changed_when: gaming_reset_result.rc == 0
+      failed_when: false
+
     - name: Apply gaming Flatpak overrides
       ansible.builtin.shell: |
         OVERRIDE_CMD="flatpak override --user"
         {% for s in item.value.sockets | default([]) %}
         OVERRIDE_CMD="$OVERRIDE_CMD --socket={{ s }}"
         {% endfor %}
-        {% for env_key, env_val in item.value.env | default({}) | dict2items %}
-        OVERRIDE_CMD="$OVERRIDE_CMD --env={{ env_key }}={{ env_val }}"
+        {% for s in item.value.nosockets | default([]) %}
+        OVERRIDE_CMD="$OVERRIDE_CMD --nosocket={{ s }}"
+        {% endfor %}
+        {% for key, val in item.value.env.items() %}
+        OVERRIDE_CMD="$OVERRIDE_CMD --env={{ key }}={{ val }}"
         {% endfor %}
         {% for fs in item.value.filesystems | default([]) %}
         OVERRIDE_CMD="$OVERRIDE_CMD --filesystem={{ fs }}"

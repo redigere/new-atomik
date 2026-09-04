@@ -20,17 +20,12 @@
         url: https://dl.flathub.org/repo/flathub.flatpakrepo
         state: present
     atomik_flatpaks:
-      - com.spotify.Client
       - org.kde.Kile
       - org.videolan.VLC
       - com.discordapp.Discord
-
       - com.usebottles.bottles
       - eu.betterbird.Betterbird
       - com.github.wwmm.easyeffects
-    atomik_electron_flatpaks:
-      - com.spotify.Client
-      - com.discordapp.Discord
 
   tasks:
     - name: Skip in containers
@@ -87,29 +82,34 @@
       changed_when: flatpak_app_install is changed
       failed_when: false
 
-    - name: Reset Electron Flatpak overrides and clean user data
+    - name: Detect installed Electron Flatpak apps
       ansible.builtin.shell: |
-        flatpak override --user --reset {{ item }}
-        rm -rf "$HOME/.var/app/{{ item }}"
-      loop: "{{ atomik_electron_flatpaks }}"
-      loop_control:
-        label: "{{ item }}"
+        flatpak list --app --columns=application 2>/dev/null | while read app; do
+          if flatpak info --show-metadata "$app" 2>/dev/null | grep -q "org.electronjs.Electron2.BaseApp"; then
+            echo "$app"
+          fi
+        done
+      register: electron_apps_result
       become: true
       become_user: "{{ ansible_user_id }}"
-      register: electron_clean_result
-      changed_when: electron_clean_result.rc == 0
+      changed_when: false
 
-    - name: Apply Electron overrides for Electron-based Flatpaks
+    - name: Set Electron Flatpak apps fact
+      ansible.builtin.set_fact:
+        detected_electron_apps: "{{ electron_apps_result.stdout_lines | default([]) }}"
+
+    - name: Apply base Electron override to all detected apps
       ansible.builtin.shell: |
-        OVERRIDE_CMD="flatpak override --user"
-        {% for s in atomik_electron_overrides.sockets | default([]) %}
-        OVERRIDE_CMD="$OVERRIDE_CMD --socket={{ s }}"
-        {% endfor %}
-        {% for env_key, env_val in atomik_electron_overrides.env | default({}) | dict2items %}
-        OVERRIDE_CMD="$OVERRIDE_CMD --env={{ env_key }}={{ env_val }}"
-        {% endfor %}
-        $OVERRIDE_CMD {{ item }}
-      loop: "{{ atomik_electron_flatpaks }}"
+        flatpak override --user --reset {{ item }}
+        flatpak override --user \
+          --nosocket=fallback-x11 \
+          --socket=wayland \
+          --socket=x11 \
+          --env=ELECTRON_OZONE_PLATFORM_HINT=x11 \
+          --filesystem=xdg-cache:create \
+          --filesystem=xdg-config:create \
+          {{ item }}
+      loop: "{{ detected_electron_apps }}"
       loop_control:
         label: "{{ item }}"
       become: true
@@ -118,12 +118,139 @@
       changed_when: electron_override_result.rc == 0
       failed_when: false
 
-    - name: Clean Discord cache
-      ansible.builtin.shell: |
-        flatpak kill com.discordapp.Discord
-        rm -rf ~/.var/app/com.discordapp.Discord/config/discord/GPUCache ~/.var/app/com.discordapp.Discord/config/discord/Cache
-        flatpak run com.discordapp.Discord
+    - name: Ensure Discord settings directory exists
+      ansible.builtin.file:
+        path: "~/.var/app/com.discordapp.Discord/config/discord"
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        mode: "0755"
       become: true
       become_user: "{{ ansible_user_id }}"
-      register: discord_cache_result
-      changed_when: discord_cache_result.rc == 0
+
+    - name: Create Discord flags file
+      ansible.builtin.copy:
+        content: |
+          --ozone-platform=x11
+          --use-gl=egl
+        dest: "~/.var/app/com.discordapp.Discord/config/discord-flags.conf"
+        owner: "{{ ansible_user_id }}"
+        mode: "0644"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Enable Discord hardware acceleration
+      ansible.builtin.lineinfile:
+        path: "~/.var/app/com.discordapp.Discord/config/discord/settings.json"
+        regexp: '"enableHardwareAcceleration"\s*:\s*false'
+        line: '  "enableHardwareAcceleration": true,'
+        insertafter: '"IS_MINIMIZED"'
+        create: true
+        owner: "{{ ansible_user_id }}"
+        mode: "0644"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Create systemd user directory for Electron overrides
+      ansible.builtin.file:
+        path: "~/.config/systemd/user"
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        mode: "0755"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Ensure ~/.local/bin exists
+      ansible.builtin.file:
+        path: "~/.local/bin"
+        state: directory
+        owner: "{{ ansible_user_id }}"
+        mode: "0755"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Deploy fix-electron-overrides script
+      ansible.builtin.copy:
+        src: "{{ inventory_dir }}/../../scripts/extra/flatpak/site/fix-electron-overrides.sh"
+        dest: "~/.local/bin/fix-electron-overrides"
+        owner: "{{ ansible_user_id }}"
+        mode: "0755"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Deploy fix-electron-flatpak service
+      ansible.builtin.copy:
+        content: |
+          [Unit]
+          description=Apply Flatpak Electron overrides (fallback-x11 fix)
+
+          [Service]
+          type=oneshot
+          execstart=%h/.local/bin/fix-electron-overrides
+
+          [Install]
+          wantedby=default.target
+        dest: "~/.config/systemd/user/fix-electron-flatpak.service"
+        owner: "{{ ansible_user_id }}"
+        mode: "0644"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Deploy fix-electron-flatpak path unit
+      ansible.builtin.copy:
+        content: |
+          [Unit]
+          description=Monitor Flatpak app directory for changes
+
+          [Path]
+          DirectoryModified=/var/lib/flatpak/app
+          Unit=fix-electron-flatpak.service
+
+          [Install]
+          wantedBy=default.target
+        dest: "~/.config/systemd/user/fix-electron-flatpak.path"
+        owner: "{{ ansible_user_id }}"
+        mode: "0644"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Deploy fix-electron-flatpak timer (boot fallback)
+      ansible.builtin.copy:
+        content: |
+          [Unit]
+          description=Periodically fix Electron Flatpak overrides
+
+          [Timer]
+          onbootsec=30s
+
+          [Install]
+          wantedBy=timers.target
+        dest: "~/.config/systemd/user/fix-electron-flatpak.timer"
+        owner: "{{ ansible_user_id }}"
+        mode: "0644"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Enable fix-electron-flatpak path unit
+      ansible.builtin.systemd_service:
+        name: fix-electron-flatpak.path
+        scope: user
+        enabled: true
+        state: started
+      become: true
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Enable fix-electron-flatpak timer
+      ansible.builtin.systemd_service:
+        name: fix-electron-flatpak.timer
+        scope: user
+        enabled: true
+        state: started
+      become: true
+      become_user: "{{ ansible_user_id }}"
+
+    - name: Run fix-electron-overrides now
+      ansible.builtin.command: "{{ ansible_user_id == 'root' | ternary('/root', '/home/' + ansible_user_id) }}/.local/bin/fix-electron-overrides"
+      become: true
+      become_user: "{{ ansible_user_id }}"
+      changed_when: false
+      failed_when: false

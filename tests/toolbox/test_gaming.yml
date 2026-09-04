@@ -40,7 +40,7 @@
 
     - name: Verify Discord override parameters
       ansible.builtin.debug:
-        msg: "Discord override: Wayland + PulseAudio + DRI + KDE StatusNotifier"
+        msg: "Discord override: X11 + PulseAudio + DRI + KDE StatusNotifier"
 
     - name: Verify Heroic override includes filesystem access
       ansible.builtin.debug:
