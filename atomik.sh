@@ -72,7 +72,6 @@ usage() {
     echo "  business         Installa i Flatpak da lavoro (Slack) con Wayland"
     echo "  devtools         Installa i tool di sviluppo (rustup, pnpm)"
     echo "  codium           Installa e ottimizza VSCodium"
-    echo "  spotx            Applica blocco annunci SpotX a Spotify"
     echo ""
     echo -e "${GREEN}Verifica & Qualità:${NC}"
     echo "  lint             Controlla la sintassi di tutti i playbook"
@@ -98,7 +97,7 @@ case "$CMD" in
         echo -e "${BLUE}==>${NC} Applicazione configurazione core..."
         run_root "$ANSIBLE_BIN" "${SCRIPT_DIR}/ansible/site.yml" -i "$INVENTORY" "$@"
         echo -e "${BLUE}==>${NC} Applicazione moduli extra..."
-        for extra in flatpak gaming business devtools codium spotx; do
+        for extra in flatpak gaming business devtools codium; do
             if [[ -f "${SCRIPT_DIR}/extra/${extra}/site.yml" ]]; then
                 echo -e "${BLUE}==>${NC} Applicazione extra/${extra}..."
                 run_user "$ANSIBLE_BIN" "${SCRIPT_DIR}/extra/${extra}/site.yml" -i "$INVENTORY" "$@"
@@ -127,7 +126,7 @@ case "$CMD" in
         ;;
     extra)
         echo -e "${BLUE}==>${NC} Applicazione di tutti i moduli extra..."
-        for extra in flatpak gaming business devtools codium spotx; do
+        for extra in flatpak gaming business devtools codium; do
             if [[ -f "${SCRIPT_DIR}/extra/${extra}/site.yml" ]]; then
                 echo -e "${BLUE}==>${NC} Applicazione extra/${extra}..."
                 run_user "$ANSIBLE_BIN" "${SCRIPT_DIR}/extra/${extra}/site.yml" -i "$INVENTORY" "$@"
@@ -153,10 +152,6 @@ case "$CMD" in
     codium)
         echo -e "${BLUE}==>${NC} Applicazione VSCodium..."
         run_user "$ANSIBLE_BIN" "${SCRIPT_DIR}/extra/codium/site.yml" -i "$INVENTORY" "$@"
-        ;;
-    spotx)
-        echo -e "${BLUE}==>${NC} Applicazione SpotX Spotify..."
-        run_user "$ANSIBLE_BIN" "${SCRIPT_DIR}/extra/spotx/site.yml" -i "$INVENTORY" "$@"
         ;;
     lint)
         echo -e "${BLUE}==>${NC} Verifica sintassi dei playbook..."

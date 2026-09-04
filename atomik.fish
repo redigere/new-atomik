@@ -63,7 +63,6 @@ function show_usage
     echo "  business         Installa i Flatpak da lavoro (Slack) con Wayland"
     echo "  devtools         Installa i tool di sviluppo (rustup, pnpm)"
     echo "  codium           Installa e ottimizza VSCodium"
-    echo "  spotx            Applica blocco annunci SpotX a Spotify"
     echo ""
     echo (set_color green)"Verifica & Qualità:"(set_color normal)
     echo "  lint             Controlla la sintassi di tutti i playbook"
@@ -88,7 +87,7 @@ switch "$cmd"
     case all
         echo (set_color blue)"==>"(set_color normal) "Applicazione configurazione core..."
         run_root $ansible_bin $script_dir/ansible/site.yml -i $inventory $extra_args
-        for extra in flatpak gaming business devtools codium spotx
+        for extra in flatpak gaming business devtools codium
             if test -f "$script_dir/extra/$extra/site.yml"
                 echo (set_color blue)"==>"(set_color normal) "Applicazione extra/$extra..."
                 run_user $ansible_bin $script_dir/extra/$extra/site.yml -i $inventory $extra_args
@@ -117,7 +116,7 @@ switch "$cmd"
 
     case extra
         echo (set_color blue)"==>"(set_color normal) "Applicazione di tutti i moduli extra..."
-        for extra in flatpak gaming business devtools codium spotx
+        for extra in flatpak gaming business devtools codium
             if test -f "$script_dir/extra/$extra/site.yml"
                 echo (set_color blue)"==>"(set_color normal) "Applicazione extra/$extra..."
                 run_user $ansible_bin $script_dir/extra/$extra/site.yml -i $inventory $extra_args
@@ -143,10 +142,6 @@ switch "$cmd"
     case codium
         echo (set_color blue)"==>"(set_color normal) "Applicazione VSCodium..."
         run_user $ansible_bin $script_dir/extra/codium/site.yml -i $inventory $extra_args
-
-    case spotx
-        echo (set_color blue)"==>"(set_color normal) "Applicazione SpotX Spotify..."
-        run_user $ansible_bin $script_dir/extra/spotx/site.yml -i $inventory $extra_args
 
     case lint
         echo (set_color blue)"==>"(set_color normal) "Verifica sintassi dei playbook..."
